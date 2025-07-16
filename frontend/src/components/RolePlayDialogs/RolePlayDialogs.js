@@ -86,7 +86,7 @@ const RolePlayDialogs = ({
           a real-time pre-visit report</span> capturing relevant
           information. Following pre-visit report generation, an evaluation is available. The purpose of this evaluation is to provide the viewer insights into quality of the output.
           For this evaluation, MedGemma is provided the previously unknown reference diagnosis, and is prompted to generate a 
-          <span className="highlight">self evaluation that highlights strengths as well opporutunities where the conversation and report could have been improved.</span>
+          <span className="highlight">self evaluation that highlights strengths as well opportunities where the conversation and report could have been improved.</span>
         </div>
         <button className="info-button" onClick={onStart}>
           Start conversation
