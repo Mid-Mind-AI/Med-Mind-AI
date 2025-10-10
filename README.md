@@ -156,4 +156,4 @@ MedGemma is finetunable - see colab here: https://github.com/Google-Health/medge
 
 * This demo is part of Google's [Health AI Developer Foundations (HAI-DEF)](https://developers.google.com/health-ai-developer-foundations?referral=appoint-ready)
 * Technical info - contact [@lirony](https://huggingface.co/lirony)
-* Press only: press@google.com
+* Press only: press@google.com# Med-Mind-AI
