@@ -6,3 +6,7 @@ frontend/build
 .git
 /backend/.venv
 /backend/.env
+# Environment variables (private)
+.env
+.env.local
+.env*.local
