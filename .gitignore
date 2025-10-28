@@ -6,3 +6,5 @@ frontend/build
 .git
 /backend/.venv
 /backend/.env
+/backend/.env.local
+/frontend/.env.local

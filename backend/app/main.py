@@ -1,9 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 import openai
 from pydantic import BaseModel
 import os
+from typing import Optional
 
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -16,7 +17,6 @@ cors = CORSMiddleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 @app.get("/")
 def health_check():
     return {"status": "ok"}
@@ -24,7 +24,7 @@ def health_check():
 
 class Prompt(BaseModel):
     prompt: str
-    
+
 
 @app.post("/generate-text")
 def generate_text(prompt: Prompt):
