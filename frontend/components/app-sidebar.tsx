@@ -1,3 +1,4 @@
+"use client"
 import { Calendar, Home, Inbox, Search, Settings } from "lucide-react"
 
 import {
@@ -9,7 +10,10 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
 } from "@/components/ui/sidebar"
+
+import { useSidebar } from "@/components/ui/sidebar"
 
 // Menu items.
 const items = [
@@ -41,10 +45,26 @@ const items = [
 ]
 
 export function AppSidebar() {
+
+    const {
+        state,
+        open,
+        setOpen,
+        openMobile,
+        setOpenMobile,
+        isMobile,
+        toggleSidebar,
+      } = useSidebar()
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon" className="border border-accent">
+      <div className="flex justify-between m-2">
+       <h1 className="text-xl font-bold transition-[margin,opacity,width] duration-200 ease-linear group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:overflow-hidden whitespace-nowrap">Med Mind AI</h1>
+        <SidebarTrigger />
+              
+      </div>
       <SidebarContent>
         <SidebarGroup>
+            
           <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
