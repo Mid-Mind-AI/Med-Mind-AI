@@ -3,8 +3,6 @@ from typing import Dict, List
 
 from openai import OpenAI
 
-API_KEY = "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"
-
 BOOKING_SYSTEM_PROMPT = (
     "You are Sarah, a warm and friendly front desk receptionist at MedCare Clinic. "
     "Your job is to help patients schedule appointments by collecting their preferred times. "
@@ -29,8 +27,10 @@ def build_messages_with_system(history: List[Dict[str, str]]) -> List[Dict[str, 
 
 def get_openrouter_client() -> OpenAI:
     """Get OpenAI client configured for OpenRouter."""
-    api_key = os.getenv("OPENROUTER_API_KEY", API_KEY)
+    api_key = os.getenv("OPENROUTER_API_KEY")
     base_url = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+
+
     return OpenAI(base_url=base_url, api_key=api_key)
 
 
