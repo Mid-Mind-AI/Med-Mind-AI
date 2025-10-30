@@ -11,9 +11,7 @@ import { SimpleHeader } from "./simple-header";
 export function Hero() {
   return (
       <div className="container max-w-5xl mx-auto">
-        <header className="sticky top-4 z-50">
-          <SimpleHeader />
-        </header>
+      
 
         <main className="relative container px-2 mx-auto">
           <section className="w-full py-12 md:py-24 lg:py-32 xl:py-36">

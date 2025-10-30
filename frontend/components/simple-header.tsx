@@ -1,3 +1,4 @@
+"use client";
 import React from 'react'; 
 import { Grid2x2PlusIcon } from 'lucide-react';
 import { Sheet, SheetContent, SheetFooter } from '@/components/ui/sheet';
@@ -23,7 +24,7 @@ export function SimpleHeader() {
 	];
 
 	return (
-		<header className=" bg-background/95 rounded-xl border supports-backdrop-filter:bg-background/80 sticky top-0 z-50 w-full border-b backdrop-blur-lg">
+		<header className="rounded-xl border supports-backdrop-filter:bg-background/80 sticky top-4 border-primary/40  z-50 w-full mx-auto max-w-5xl border-b backdrop-blur-lg">
 			<nav className="mx-auto flex h-14 w-full max-w-4xl items-center justify-between px-4">
 				<div className="flex items-center gap-2">
 					<Grid2x2PlusIcon className="size-6" />
