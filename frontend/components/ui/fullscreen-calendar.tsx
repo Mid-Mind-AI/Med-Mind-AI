@@ -1,4 +1,5 @@
 "use client"
+import EventReportPopup from "@/components/ui/event-report-popup";
 
 import * as React from "react"
 import {
@@ -80,6 +81,22 @@ export function FullScreenCalendar({ data }: FullScreenCalendarProps) {
 
   function goToToday() {
     setCurrentMonth(format(today, "MMM-yyyy"))
+  }
+
+  const [selectedReport, setSelectedReport] = React.useState(null);
+  const [isPopupOpen, setIsPopupOpen] = React.useState(false);
+
+  async function handleEventClick(eventId: number) {
+    try {
+      const res = await fetch(`http://localhost:8000/report/${eventId}`);
+      if (!res.ok) throw new Error("Failed to fetch report");
+
+      const data = await res.json();
+      setSelectedReport(data.report);
+      setIsPopupOpen(true);
+    } catch (err) {
+      console.error("Error fetching report:", err);
+    }
   }
 
   return (
@@ -181,15 +198,15 @@ export function FullScreenCalendar({ data }: FullScreenCalendarProps) {
                   className={cn(
                     isEqual(day, selectedDay) && "text-primary-foreground",
                     !isEqual(day, selectedDay) &&
-                      !isToday(day) &&
-                      isSameMonth(day, firstDayCurrentMonth) &&
-                      "text-foreground",
+                    !isToday(day) &&
+                    isSameMonth(day, firstDayCurrentMonth) &&
+                    "text-foreground",
                     !isEqual(day, selectedDay) &&
-                      !isToday(day) &&
-                      !isSameMonth(day, firstDayCurrentMonth) &&
-                      "text-muted-foreground",
+                    !isToday(day) &&
+                    !isSameMonth(day, firstDayCurrentMonth) &&
+                    "text-muted-foreground",
                     (isEqual(day, selectedDay) || isToday(day)) &&
-                      "font-semibold",
+                    "font-semibold",
                     "flex h-14 flex-col border-b border-r px-3 py-2 hover:bg-muted focus:z-10",
                   )}
                 >
@@ -198,35 +215,35 @@ export function FullScreenCalendar({ data }: FullScreenCalendarProps) {
                     className={cn(
                       "ml-auto flex size-6 items-center justify-center rounded-full",
                       isEqual(day, selectedDay) &&
-                        isToday(day) &&
-                        "bg-primary text-primary-foreground",
+                      isToday(day) &&
+                      "bg-primary text-primary-foreground",
                       isEqual(day, selectedDay) &&
-                        !isToday(day) &&
-                        "bg-primary text-primary-foreground",
+                      !isToday(day) &&
+                      "bg-primary text-primary-foreground",
                     )}
                   >
                     {format(day, "d")}
                   </time>
                   {data.filter((date) => isSameDay(date.day, day)).length >
                     0 && (
-                    <div>
-                      {data
-                        .filter((date) => isSameDay(date.day, day))
-                        .map((date) => (
-                          <div
-                            key={date.day.toString()}
-                            className="-mx-0.5 mt-auto flex flex-wrap-reverse"
-                          >
-                            {date.events.map((event) => (
-                              <span
-                                key={event.id}
-                                className="mx-0.5 mt-1 h-1.5 w-1.5 rounded-full bg-muted-foreground"
-                              />
-                            ))}
-                          </div>
-                        ))}
-                    </div>
-                  )}
+                      <div>
+                        {data
+                          .filter((date) => isSameDay(date.day, day))
+                          .map((date) => (
+                            <div
+                              key={date.day.toString()}
+                              className="-mx-0.5 mt-auto flex flex-wrap-reverse"
+                            >
+                              {date.events.map((event) => (
+                                <span
+                                  key={event.id}
+                                  className="mx-0.5 mt-1 h-1.5 w-1.5 rounded-full bg-muted-foreground"
+                                />
+                              ))}
+                            </div>
+                          ))}
+                      </div>
+                    )}
                 </button>
               ) : (
                 <div
@@ -235,9 +252,9 @@ export function FullScreenCalendar({ data }: FullScreenCalendarProps) {
                   className={cn(
                     dayIdx === 0 && colStartClasses[getDay(day)],
                     !isEqual(day, selectedDay) &&
-                      !isToday(day) &&
-                      !isSameMonth(day, firstDayCurrentMonth) &&
-                      "bg-accent/50 text-muted-foreground",
+                    !isToday(day) &&
+                    !isSameMonth(day, firstDayCurrentMonth) &&
+                    "bg-accent/50 text-muted-foreground",
                     "relative flex flex-col border-b border-r hover:bg-muted focus:z-10",
                     !isEqual(day, selectedDay) && "hover:bg-accent/75",
                   )}
@@ -248,21 +265,21 @@ export function FullScreenCalendar({ data }: FullScreenCalendarProps) {
                       className={cn(
                         isEqual(day, selectedDay) && "text-primary-foreground",
                         !isEqual(day, selectedDay) &&
-                          !isToday(day) &&
-                          isSameMonth(day, firstDayCurrentMonth) &&
-                          "text-foreground",
+                        !isToday(day) &&
+                        isSameMonth(day, firstDayCurrentMonth) &&
+                        "text-foreground",
                         !isEqual(day, selectedDay) &&
-                          !isToday(day) &&
-                          !isSameMonth(day, firstDayCurrentMonth) &&
-                          "text-muted-foreground",
+                        !isToday(day) &&
+                        !isSameMonth(day, firstDayCurrentMonth) &&
+                        "text-muted-foreground",
                         isEqual(day, selectedDay) &&
-                          isToday(day) &&
-                          "border-none bg-primary",
+                        isToday(day) &&
+                        "border-none bg-primary",
                         isEqual(day, selectedDay) &&
-                          !isToday(day) &&
-                          "bg-foreground",
+                        !isToday(day) &&
+                        "bg-foreground",
                         (isEqual(day, selectedDay) || isToday(day)) &&
-                          "font-semibold",
+                        "font-semibold",
                         "flex h-7 w-7 items-center justify-center rounded-full text-xs hover:border",
                       )}
                     >
@@ -279,14 +296,11 @@ export function FullScreenCalendar({ data }: FullScreenCalendarProps) {
                           {day.events.slice(0, 1).map((event) => (
                             <div
                               key={event.id}
-                              className="flex flex-col items-start gap-1 rounded-lg border bg-muted/50 p-2 text-xs leading-tight"
+                              onClick={() => handleEventClick(event.id)}
+                              className="flex flex-col items-start gap-1 rounded-lg border bg-muted/50 p-2 text-xs leading-tight cursor-pointer hover:bg-muted"
                             >
-                              <p className="font-medium leading-none">
-                                {event.name}
-                              </p>
-                              <p className="leading-none text-muted-foreground">
-                                {event.time}
-                              </p>
+                              <p className="font-medium leading-none">{event.name}</p>
+                              <p className="leading-none text-muted-foreground">{event.time}</p>
                             </div>
                           ))}
                           {day.events.length > 1 && (
@@ -311,15 +325,15 @@ export function FullScreenCalendar({ data }: FullScreenCalendarProps) {
                 className={cn(
                   isEqual(day, selectedDay) && "text-primary-foreground",
                   !isEqual(day, selectedDay) &&
-                    !isToday(day) &&
-                    isSameMonth(day, firstDayCurrentMonth) &&
-                    "text-foreground",
+                  !isToday(day) &&
+                  isSameMonth(day, firstDayCurrentMonth) &&
+                  "text-foreground",
                   !isEqual(day, selectedDay) &&
-                    !isToday(day) &&
-                    !isSameMonth(day, firstDayCurrentMonth) &&
-                    "text-muted-foreground",
+                  !isToday(day) &&
+                  !isSameMonth(day, firstDayCurrentMonth) &&
+                  "text-muted-foreground",
                   (isEqual(day, selectedDay) || isToday(day)) &&
-                    "font-semibold",
+                  "font-semibold",
                   "flex h-14 flex-col border-b border-r px-3 py-2 hover:bg-muted focus:z-10",
                 )}
               >
@@ -328,11 +342,11 @@ export function FullScreenCalendar({ data }: FullScreenCalendarProps) {
                   className={cn(
                     "ml-auto flex size-6 items-center justify-center rounded-full",
                     isEqual(day, selectedDay) &&
-                      isToday(day) &&
-                      "bg-primary text-primary-foreground",
+                    isToday(day) &&
+                    "bg-primary text-primary-foreground",
                     isEqual(day, selectedDay) &&
-                      !isToday(day) &&
-                      "bg-primary text-primary-foreground",
+                    !isToday(day) &&
+                    "bg-primary text-primary-foreground",
                   )}
                 >
                   {format(day, "d")}
@@ -361,6 +375,11 @@ export function FullScreenCalendar({ data }: FullScreenCalendarProps) {
           </div>
         </div>
       </div>
+      <EventReportPopup
+        isOpen={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)}
+        report={selectedReport}
+      />
     </div>
   )
 }

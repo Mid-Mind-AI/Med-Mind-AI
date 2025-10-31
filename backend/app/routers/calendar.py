@@ -1,4 +1,4 @@
-import calendar_store as cal
+from app import calendar_store as cal
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
