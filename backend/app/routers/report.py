@@ -3,7 +3,7 @@ from app.models.report_model import create_event_summary
 
 router = APIRouter(prefix="/report", tags=["Report"])
 
-
+#Its hardcoded right now, but we can change it later to make it the output of the AI model
 @router.post("/generate")
 async def generate_report(data: dict):
     """
@@ -49,8 +49,6 @@ async def get_report(event_id: int):
     When you click an event on the calendar, this route will return
     a sample report. Later, you can replace it with a database lookup.
     """
-    # You could later fetch from DB like: report = db.get(event_id)
-    # For now, just return a mock report:
     mock_report = {
         "report": {
             "title": f"Appointment Report #{event_id}",
