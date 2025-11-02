@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import calendar as calendar_router
+from app.routers import report
 
 app = FastAPI()
 
@@ -16,6 +17,7 @@ app.add_middleware(
 
 # Mount feature routers
 app.include_router(calendar_router.router)
+app.include_router(report.router)
 
 
 @app.get("/")
