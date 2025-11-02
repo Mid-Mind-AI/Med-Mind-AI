@@ -9,3 +9,4 @@ frontend/build
 /backend/.env.local
 /backend/.env.template
 /frontend/.env.local
+/files
