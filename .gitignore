@@ -7,4 +7,5 @@ frontend/build
 /backend/.venv
 /backend/.env
 /backend/.env.local
+/backend/.env.template
 /frontend/.env.local
