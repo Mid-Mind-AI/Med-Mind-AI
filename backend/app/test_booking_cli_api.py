@@ -134,6 +134,19 @@ def format_tool_calls(tool_calls):
 
         lines.append(f"  • {tool_name}")
         if args:
+            # Highlight time-related args for create_event
+            if tool_name == "create_event" and "start_iso" in args:
+                start_time = args.get("start_iso", "")
+                end_time = args.get("end_iso", "")
+                lines.append(f"    ⏰ Start: {start_time}")
+                lines.append(f"    ⏰ End: {end_time}")
+                # Extract hour for verification
+                try:
+                    if "T" in start_time:
+                        hour = start_time.split("T")[1].split(":")[0]
+                        lines.append(f"    📍 Hour component: {hour}:00")
+                except (IndexError, AttributeError):
+                    pass
             lines.append(f"    Args: {args}")
         if error:
             lines.append(f"    ❌ Error: {error}")
@@ -185,8 +198,15 @@ CURRENT DATE AND TIME INFORMATION (use this for "today" and "tomorrow"):
 - Today's Date: {current_date_str}
 - Tomorrow's Date: {tomorrow_date_str}
 
-IMPORTANT: When the user says "today", use {current_date_str}. When they say "tomorrow", use {tomorrow_date_str}.
-Always format dates in ISO 8601 format with timezone (e.g., "2025-11-02T14:00:00+00:00").
+IMPORTANT:
+- When the user says "today", use {current_date_str}. When they say "tomorrow", use {tomorrow_date_str}.
+- Always format dates in ISO 8601 format with timezone (e.g., "2025-11-02T20:00:00+00:00").
+- TIMEZONE CONVERSION: The user is in approximately UTC-5 (Eastern Time). When they say a time, ADD 5 HOURS to convert to UTC:
+  * "3 PM" local = 20:00 UTC (15:00 + 5 = 20:00)
+  * "2 PM" local = 19:00 UTC (14:00 + 5 = 19:00)
+  * "10 AM" local = 15:00 UTC (10:00 + 5 = 15:00)
+  * "10 PM" local = 03:00 UTC next day (22:00 + 5 = 27:00 - 24 = 03:00 next day)
+- CRITICAL: If user says "3 PM", you MUST use 20:00 UTC (not 15:00 UTC), so it displays correctly as 3 PM in their timezone
 """
 
     # Convert chat history to LangChain messages
