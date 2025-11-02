@@ -4,12 +4,8 @@ import sys
 from dotenv import load_dotenv; load_dotenv()
 # Support running as a module (python -m backend.app.booking_cli)
 # and as a script (python backend/app/booking_cli.py)
-try:
-	from app.models.booking_model import complete_booking_turn  # type: ignore
-except Exception:
-	# Fall back to local package import when executed directly
-	sys.path.insert(0, os.path.dirname(__file__))
-	from models.booking_model import complete_booking_turn  # type: ignore
+from app.agents.booking_model import complete_booking_turn  # type: ignore
+
 
 
 def main():
