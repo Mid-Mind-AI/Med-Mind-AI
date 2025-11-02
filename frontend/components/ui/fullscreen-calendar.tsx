@@ -32,6 +32,8 @@ import { useMediaQuery } from "@/hooks/use-media-query"
 interface Event {
   id: number
   name: string
+  patient_name: string
+  phone_number: string
   time: string
   datetime: string
 }
@@ -83,20 +85,12 @@ export function FullScreenCalendar({ data }: FullScreenCalendarProps) {
     setCurrentMonth(format(today, "MMM-yyyy"))
   }
 
-  const [selectedReport, setSelectedReport] = React.useState(null);
+  const [selectedEvent, setSelectedEvent] = React.useState<Event | null>(null);
   const [isPopupOpen, setIsPopupOpen] = React.useState(false);
 
-  async function handleEventClick(eventId: number) {
-    try {
-      const res = await fetch(`http://localhost:8000/report/${eventId}`);
-      if (!res.ok) throw new Error("Failed to fetch report");
-
-      const data = await res.json();
-      setSelectedReport(data.report);
-      setIsPopupOpen(true);
-    } catch (err) {
-      console.error("Error fetching report:", err);
-    }
+  function handleEventClick(event: Event) {
+    setSelectedEvent(event);
+    setIsPopupOpen(true);
   }
 
   return (
@@ -296,7 +290,7 @@ export function FullScreenCalendar({ data }: FullScreenCalendarProps) {
                           {day.events.slice(0, 1).map((event) => (
                             <div
                               key={event.id}
-                              onClick={() => handleEventClick(event.id)}
+                              onClick={() => handleEventClick(event)}
                               className="flex flex-col items-start gap-1 rounded-lg border bg-muted/50 p-2 text-xs leading-tight cursor-pointer hover:bg-muted"
                             >
                               <p className="font-medium leading-none">{event.name}</p>
@@ -378,7 +372,7 @@ export function FullScreenCalendar({ data }: FullScreenCalendarProps) {
       <EventReportPopup
         isOpen={isPopupOpen}
         onClose={() => setIsPopupOpen(false)}
-        report={selectedReport}
+        event={selectedEvent}
       />
     </div>
   )

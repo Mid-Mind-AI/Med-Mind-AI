@@ -1,6 +1,7 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
 
 interface Medication {
   name: string;
@@ -18,22 +19,35 @@ interface Report {
   notes?: string;
 }
 
+interface EventData {
+  id: number;
+  name: string;
+  patient_name: string;
+  phone_number: string;
+  time: string;
+  datetime: string;
+}
+
 interface EventReportPopupProps {
   isOpen: boolean;
   onClose: () => void;
-  report: Report | null;
+  event: EventData | null;
 }
 
 const EventReportPopup: React.FC<EventReportPopupProps> = ({
   isOpen,
   onClose,
-  report,
+  event,
 }) => {
-  if (!isOpen || !report) return null;
+  if (!isOpen || !event) return null;
+
+  // Parse the datetime to get a formatted date
+  const eventDate = new Date(event.datetime);
+  const formattedDate = format(eventDate, "EEEE, MMMM d, yyyy");
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-      <Card className="bg-white rounded-2xl shadow-lg w-[420px] p-6 relative animate-fadeIn">
+      <Card className="bg-white rounded-2xl shadow-lg w-[420px] max-h-[90vh] overflow-y-auto p-6 relative animate-fadeIn">
         <Button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
@@ -42,47 +56,38 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
           ✖
         </Button>
 
-        <h2 className="text-xl font-semibold mb-3">MedGemma Report</h2>
-        <div className="text-sm text-gray-600 space-y-2">
-          <p><strong>Doctor:</strong> {report.doctor_name}</p>
-          <p><strong>Patient:</strong> {report.patient_name}</p>
+        <h2 className="text-xl font-semibold mb-4">Appointment Details</h2>
 
+        {/* User Provided Information */}
+        <div className="text-sm text-gray-600 space-y-3 mb-6 pb-6 border-b">
           <div>
-            <h3 className="font-medium mt-3">Primary Concern:</h3>
-            <p>{report.primary_concern || "Not specified"}</p>
+            <p className="font-medium text-gray-700 mb-1">Patient Name:</p>
+            <p className="text-gray-900">{event.patient_name}</p>
           </div>
 
           <div>
-            <h3 className="font-medium mt-3">Current Medications:</h3>
-            <ul className="list-disc pl-5">
-              {report.current_medications?.length ? (
-                report.current_medications.map((m, i) => (
-                  <li key={i}>
-                    {m.name} — {m.dosage} ({m.frequency})
-                  </li>
-                ))
-              ) : (
-                <li>No current medications</li>
-              )}
-            </ul>
+            <p className="font-medium text-gray-700 mb-1">Phone Number:</p>
+            <p className="text-gray-900">{event.phone_number}</p>
           </div>
 
           <div>
-            <h3 className="font-medium mt-3">Medical History:</h3>
-            <p>{report.medical_history || "Not available"}</p>
+            <p className="font-medium text-gray-700 mb-1">Date:</p>
+            <p className="text-gray-900">{formattedDate}</p>
           </div>
 
           <div>
-            <h3 className="font-medium mt-3">AI Insights:</h3>
-            <p>{report.ai_insights || "No insights yet"}</p>
+            <p className="font-medium text-gray-700 mb-1">Time:</p>
+            <p className="text-gray-900">{event.time}</p>
           </div>
+        </div>
 
-          {report.notes && (
-            <div>
-              <h3 className="font-medium mt-3">Notes:</h3>
-              <p>{report.notes}</p>
-            </div>
-          )}
+        {/* Report Placeholder Section */}
+        <div className="mt-6">
+          <h3 className="font-semibold text-gray-800 mb-3">Report</h3>
+          <div className="bg-gray-50 rounded-lg p-4 border-2 border-dashed border-gray-300 text-center text-gray-500 min-h-[200px] flex items-center justify-center">
+            <p className="text-sm">Report content will be displayed here</p>
+            <p className="text-xs mt-2 text-gray-400">(Placeholder for create_event_summary API)</p>
+          </div>
         </div>
       </Card>
     </div>

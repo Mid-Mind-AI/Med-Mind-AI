@@ -1,25 +1,103 @@
+import json
 import os
-
-# Import calendar store functions directly
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from dotenv import load_dotenv
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 
+# Add parent directory to path for calendar_store import
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import calendar_store as cal
 
-# Load env vars
 load_dotenv()
 
-# System prompt for the booking agent
-SYSTEM_PROMPT = """You are a helpful clinical booking assistant. Your role is to help patients book appointments.
+# ============================================================================
+# CONSTANTS
+# ============================================================================
+
+# Model configuration
+MODEL_NAME = "gpt-4o-mini"
+MODEL_TEMPERATURE = 0.7
+
+# Agent configuration
+MAX_ITERATIONS = 5  # Prevent infinite loops in agent execution
+
+# Timezone configuration
+USER_TIMEZONE_OFFSET_HOURS = 5  # Eastern Time is UTC-5
+DEFAULT_TIMEZONE = "UTC"
+
+# Appointment defaults
+DEFAULT_APPOINTMENT_DURATION_MINUTES = 30
+DEFAULT_START_HOUR = 9
+DEFAULT_END_HOUR = 17
+DEFAULT_NUM_SLOTS = 3
+SLOT_CHECK_INTERVAL_MINUTES = 15
+
+
+# ============================================================================
+# DATE/TIME UTILITIES
+# ============================================================================
+
+def parse_iso_datetime(iso_string: str) -> datetime:
+    """Parse an ISO 8601 datetime string, handling 'Z' suffix.
+
+    Args:
+        iso_string: ISO 8601 datetime string
+
+    Returns:
+        Parsed datetime object
+    """
+    # Handle 'Z' suffix (UTC) by converting to +00:00
+    if iso_string.endswith('Z'):
+        iso_string = iso_string[:-1] + '+00:00'
+    return datetime.fromisoformat(iso_string)
+
+
+def validate_not_in_past(start_iso: str) -> Optional[str]:
+    """Validate that a datetime is not in the past.
+
+    Args:
+        start_iso: ISO 8601 datetime string
+
+    Returns:
+        Error message if invalid, None if valid
+    """
+    start_dt = parse_iso_datetime(start_iso)
+    now = datetime.now(timezone.utc)
+
+    # Ensure both are timezone-aware
+    if start_dt.tzinfo is None:
+        start_dt = start_dt.replace(tzinfo=timezone.utc)
+
+    if start_dt < now:
+        return f"Cannot book appointments in the past. Requested time {start_iso} is before current time."
+    return None
+
+
+# ============================================================================
+# SYSTEM PROMPT GENERATION
+# ============================================================================
+
+def get_system_prompt() -> str:
+    """Generate the complete system prompt with current date/time information.
+
+    Returns:
+        Complete system prompt string with dynamic date/time context
+    """
+    # Get current date/time for context
+    now = datetime.now(timezone.utc)
+    current_date_str = now.strftime("%Y-%m-%d")
+    current_time_str = now.strftime("%H:%M:%S")
+    current_datetime_str = now.isoformat()
+    tomorrow_date_str = (now + timedelta(days=1)).strftime("%Y-%m-%d")
+
+    return f"""You are a helpful clinical booking assistant. Your role is to help patients book appointments.
 
 Your workflow:
 1. When a patient requests a booking, first collect their information: patient name and phone number
@@ -38,32 +116,52 @@ CRITICAL DATE AND TIME HANDLING:
 - NEVER book appointments in the past - always validate the date is today or in the future
 - Always use ISO 8601 format with timezone (e.g., "2025-01-15T14:00:00+00:00" for UTC)
 
+CURRENT DATE AND TIME INFORMATION (use this for "today" and "tomorrow"):
+- Current Date (UTC): {current_date_str}
+- Current Time (UTC): {current_time_str}
+- Current DateTime (ISO): {current_datetime_str}
+- Today's Date: {current_date_str}
+- Tomorrow's Date: {tomorrow_date_str}
+
+IMPORTANT:
+- When the user says "today", use {current_date_str}. When they say "tomorrow", use {tomorrow_date_str}.
+- Always format dates in ISO 8601 format with timezone (e.g., "2025-11-02T20:00:00+00:00").
+
 CRITICAL TIME HANDLING:
 - IMPORTANT: When users specify a time like "3 PM", they almost always mean 3 PM in THEIR LOCAL TIMEZONE, NOT UTC
-- The user's local timezone appears to be approximately UTC-5 (Eastern Time) or similar
+- The user's local timezone is approximately UTC-{USER_TIMEZONE_OFFSET_HOURS} (Eastern Time)
 - When user says "3 PM", they mean 3 PM local time, which should be converted to UTC before storing
-- Time conversion examples for UTC-5 (EST/EDT):
-  * "3 PM" local = 15:00 EST = 20:00 UTC (15 + 5 = 20)
-  * "2 PM" local = 14:00 EST = 19:00 UTC
-  * "10 AM" local = 10:00 EST = 15:00 UTC
-  * "10 PM" local = 22:00 EST = 03:00 UTC (next day)
+- TIMEZONE CONVERSION: The user is in approximately UTC-{USER_TIMEZONE_OFFSET_HOURS} (Eastern Time). When they say a time, ADD {USER_TIMEZONE_OFFSET_HOURS} HOURS to convert to UTC:
+  * "3 PM" local = 20:00 UTC (15:00 + {USER_TIMEZONE_OFFSET_HOURS} = 20:00)
+  * "2 PM" local = 19:00 UTC (14:00 + {USER_TIMEZONE_OFFSET_HOURS} = 19:00)
+  * "10 AM" local = 15:00 UTC (10:00 + {USER_TIMEZONE_OFFSET_HOURS} = 15:00)
+  * "10 PM" local = 03:00 UTC next day (22:00 + {USER_TIMEZONE_OFFSET_HOURS} = 27:00 - 24 = 03:00 next day)
+- CRITICAL: If user says "3 PM", you MUST use 20:00 UTC (not 15:00 UTC), so it displays correctly as 3 PM in their timezone
 - Always use 24-hour format (00:00 to 23:59) when creating ISO 8601 timestamps
-- When user provides a time, assume it's in their local timezone (approximately UTC-5) and add 5 hours to convert to UTC
-- Example: If user wants appointment "tomorrow at 3 PM", and they're in UTC-5:
+- When user provides a time, assume it's in their local timezone (approximately UTC-{USER_TIMEZONE_OFFSET_HOURS}) and add {USER_TIMEZONE_OFFSET_HOURS} hours to convert to UTC
+- Example: If user wants appointment "tomorrow at 3 PM", and they're in UTC-{USER_TIMEZONE_OFFSET_HOURS}:
   * 3 PM local = 15:00 EST
-  * Convert to UTC: 15:00 + 5 hours = 20:00 UTC
+  * Convert to UTC: 15:00 + {USER_TIMEZONE_OFFSET_HOURS} hours = 20:00 UTC
   * Create timestamp: "2025-11-02T20:00:00+00:00" (this will display as 3 PM local time)
 
-Important:
+Additional Guidelines:
 - Patient name and phone number are REQUIRED - ask for them if not provided
-- Default timezone is UTC if not specified by the user
-- Appointment duration is typically 30 minutes unless specified
+- Default timezone is {DEFAULT_TIMEZONE} if not specified by the user
+- Appointment duration is typically {DEFAULT_APPOINTMENT_DURATION_MINUTES} minutes unless specified
 - Use 24-hour format for times in ISO timestamps
 - When suggesting alternatives, provide clear options with dates and times
 - Always validate that booking dates are not in the past
 """
 
-# Define tools for the agent
+
+
+
+
+
+# ============================================================================
+# TOOLS
+# ============================================================================
+
 @tool
 def check_availability(start_iso: str, end_iso: str) -> Dict[str, Any]:
     """Check if a time slot is available for booking.
@@ -84,7 +182,7 @@ def check_availability(start_iso: str, end_iso: str) -> Dict[str, Any]:
 
 @tool
 def create_event(patient_name: str, phone_number: str, start_iso: str, end_iso: str,
-                 timezone_str: str = "UTC", notes: Optional[str] = None) -> Dict[str, Any]:
+                 timezone_str: str = DEFAULT_TIMEZONE, notes: Optional[str] = None) -> Dict[str, Any]:
     """Create a calendar event/appointment.
 
     Args:
@@ -100,24 +198,9 @@ def create_event(patient_name: str, phone_number: str, start_iso: str, end_iso: 
     """
     try:
         # Validate that the date is not in the past
-        from datetime import datetime
-        from datetime import timezone as tz
-
-        # Parse start time and check if it's in the past
-        start_dt = datetime.fromisoformat(start_iso.replace('Z', '+00:00'))
-        now = datetime.now(tz.utc) if start_dt.tzinfo else datetime.now()
-
-        # Make timezone-aware comparison
-        if start_dt.tzinfo is None:
-            start_dt = start_dt.replace(tzinfo=tz.utc)
-        if now.tzinfo is None:
-            now = now.replace(tzinfo=tz.utc)
-
-        if start_dt < now:
-            return {
-                "success": False,
-                "error": f"Cannot book appointments in the past. Requested time {start_iso} is before current time."
-            }
+        validation_error = validate_not_in_past(start_iso)
+        if validation_error:
+            return {"success": False, "error": validation_error}
 
         event_data = {
             "patient_name": patient_name,
@@ -134,8 +217,10 @@ def create_event(patient_name: str, phone_number: str, start_iso: str, end_iso: 
 
 
 @tool
-def suggest_alternative_times(day: str, slot_minutes: int = 30, num_slots: int = 3,
-                             start_hour: int = 9, end_hour: int = 17) -> Dict[str, Any]:
+def suggest_alternative_times(day: str, slot_minutes: int = DEFAULT_APPOINTMENT_DURATION_MINUTES,
+                             num_slots: int = DEFAULT_NUM_SLOTS,
+                             start_hour: int = DEFAULT_START_HOUR,
+                             end_hour: int = DEFAULT_END_HOUR) -> Dict[str, Any]:
     """Suggest alternative available time slots for a given day.
 
     Args:
@@ -169,7 +254,7 @@ def suggest_alternative_times(day: str, slot_minutes: int = 30, num_slots: int =
         while current + slot_delta <= end_of_day and len(suggestions) < num_slots:
             # Skip if this slot is in the past
             if current < now:
-                current += timedelta(minutes=15)
+                current += timedelta(minutes=SLOT_CHECK_INTERVAL_MINUTES)
                 continue
 
             start_iso = current.isoformat()
@@ -181,19 +266,26 @@ def suggest_alternative_times(day: str, slot_minutes: int = 30, num_slots: int =
                     "end": end_iso,
                     "duration_minutes": slot_minutes
                 })
-            current += timedelta(minutes=15)  # Check every 15 minutes
+            current += timedelta(minutes=SLOT_CHECK_INTERVAL_MINUTES)
 
         return {"suggestions": suggestions, "day": day}
     except Exception as e:
         return {"suggestions": [], "error": str(e)}
 
 
-# Create the agent with tools
+# ============================================================================
+# AGENT CREATION
+# ============================================================================
+
 def create_booking_agent():
-    """Create a LangChain agent for booking appointments."""
+    """Create a LangChain agent for booking appointments.
+
+    Returns:
+        Tuple of (prompt_template, model_with_tools, tools)
+    """
     chat_model = ChatOpenAI(
-        model="gpt-4o-mini",  # Using gpt-4o-mini as gpt-5-nano doesn't exist yet
-        temperature=0.7,
+        model=MODEL_NAME,
+        temperature=MODEL_TEMPERATURE,
         openai_api_key=os.getenv("OPENAI_API_KEY")
     )
 
@@ -203,13 +295,116 @@ def create_booking_agent():
 
     # Create prompt template
     prompt = ChatPromptTemplate.from_messages([
-        ("system", SYSTEM_PROMPT),
+        ("system", get_system_prompt()),
         MessagesPlaceholder(variable_name="chat_history"),
         ("human", "{user_message}")
     ])
 
     return prompt, model_with_tools, tools
 
+
+# ============================================================================
+# MESSAGE CONVERSION UTILITIES
+# ============================================================================
+
+def convert_chat_history_to_langchain(chat_history: List[Dict]) -> List:
+    """Convert chat history from API format to LangChain message format.
+
+    Args:
+        chat_history: List of messages in format [{"role": "user/assistant", "content": "..."}, ...]
+
+    Returns:
+        List of LangChain message objects
+    """
+    langchain_messages = [SystemMessage(content=get_system_prompt())]
+
+    for msg in chat_history:
+        if msg["role"] == "user":
+            langchain_messages.append(HumanMessage(content=msg["content"]))
+        elif msg["role"] == "assistant":
+            langchain_messages.append(AIMessage(content=msg["content"]))
+
+    return langchain_messages
+
+
+def extract_tool_call_info(tool_call: Any) -> Tuple[Optional[str], Dict, str]:
+    """Extract tool name, args, and call ID from a tool call object.
+
+    Args:
+        tool_call: Tool call object (dict or object with attributes)
+
+    Returns:
+        Tuple of (tool_name, tool_args, tool_call_id)
+    """
+    if isinstance(tool_call, dict):
+        return (
+            tool_call.get("name"),
+            tool_call.get("args", {}),
+            tool_call.get("id", "")
+        )
+    else:
+        # Fallback for object-based tool calls
+        return (
+            getattr(tool_call, "name", None),
+            getattr(tool_call, "args", {}),
+            getattr(tool_call, "id", "")
+        )
+
+
+# ============================================================================
+# TOOL EXECUTION
+# ============================================================================
+
+def execute_tool_calls(tool_calls: List[Any], tools: List) -> Tuple[List, List]:
+    """Execute tool calls and return results and tool messages.
+
+    Args:
+        tool_calls: List of tool call objects to execute
+        tools: List of available tool functions
+
+    Returns:
+        Tuple of (tool_results, tool_messages)
+    """
+    tool_results = []
+    tool_messages = []
+
+    for tool_call in tool_calls:
+        tool_name, tool_args, tool_call_id = extract_tool_call_info(tool_call)
+
+        # Find and execute the tool
+        tool_func = next((t for t in tools if t.name == tool_name), None)
+        if not tool_func:
+            continue
+
+        try:
+            result = tool_func.invoke(tool_args)
+            tool_results.append({
+                "tool": tool_name,
+                "args": tool_args,
+                "result": result
+            })
+
+            # Create tool message for model - use JSON for better parsing
+            result_str = json.dumps(result) if isinstance(result, (dict, list)) else str(result)
+            tool_msg = ToolMessage(content=result_str, tool_call_id=tool_call_id)
+            tool_messages.append(tool_msg)
+
+        except Exception as e:
+            error_msg = f"Error executing {tool_name}: {str(e)}"
+            tool_results.append({
+                "tool": tool_name,
+                "args": tool_args,
+                "error": str(e)
+            })
+            tool_msg = ToolMessage(content=error_msg, tool_call_id=tool_call_id)
+            tool_messages.append(tool_msg)
+
+    return tool_results, tool_messages
+
+
+# ============================================================================
+# BOOKING TURN PROCESSING
+# ============================================================================
 
 def complete_booking_turn(chat_history: List[Dict], user_message: str) -> Dict[str, Any]:
     """Process a booking turn - handles user message and tool calls with iterative agent execution.
@@ -221,59 +416,23 @@ def complete_booking_turn(chat_history: List[Dict], user_message: str) -> Dict[s
     Returns:
         Dictionary with 'content' (response text) and optionally 'tool_calls' info
     """
-    prompt, model, tools = create_booking_agent()
-
-    # Get current date/time for context
-    now = datetime.now(timezone.utc)
-    current_date_str = now.strftime("%Y-%m-%d")
-    current_time_str = now.strftime("%H:%M:%S")
-    current_datetime_str = now.isoformat()
-    tomorrow_date_str = (now + timedelta(days=1)).strftime("%Y-%m-%d")
-
-    # Enhanced system prompt with current date/time context
-    enhanced_system_prompt = SYSTEM_PROMPT + f"""
-
-CURRENT DATE AND TIME INFORMATION (use this for "today" and "tomorrow"):
-- Current Date (UTC): {current_date_str}
-- Current Time (UTC): {current_time_str}
-- Current DateTime (ISO): {current_datetime_str}
-- Today's Date: {current_date_str}
-- Tomorrow's Date: {tomorrow_date_str}
-
-IMPORTANT:
-- When the user says "today", use {current_date_str}. When they say "tomorrow", use {tomorrow_date_str}.
-- Always format dates in ISO 8601 format with timezone (e.g., "2025-11-02T20:00:00+00:00").
-- TIMEZONE CONVERSION: The user is in approximately UTC-5 (Eastern Time). When they say a time, ADD 5 HOURS to convert to UTC:
-  * "3 PM" local = 20:00 UTC (15:00 + 5 = 20:00)
-  * "2 PM" local = 19:00 UTC (14:00 + 5 = 19:00)
-  * "10 AM" local = 15:00 UTC (10:00 + 5 = 15:00)
-  * "10 PM" local = 03:00 UTC next day (22:00 + 5 = 27:00 - 24 = 03:00 next day)
-- CRITICAL: If user says "3 PM", you MUST use 20:00 UTC (not 15:00 UTC), so it displays correctly as 3 PM in their timezone
-"""
+    _, model, tools = create_booking_agent()
 
     # Convert chat history to LangChain messages
-    langchain_messages = [SystemMessage(content=enhanced_system_prompt)]
-    for msg in chat_history:
-        if msg["role"] == "user":
-            langchain_messages.append(HumanMessage(content=msg["content"]))
-        elif msg["role"] == "assistant":
-            langchain_messages.append(AIMessage(content=msg["content"]))
+    langchain_messages = convert_chat_history_to_langchain(chat_history)
 
     # Add current user message
     langchain_messages.append(HumanMessage(content=user_message))
 
     # Agent loop: keep executing until no more tool calls
-    tool_results = []
-    max_iterations = 5  # Prevent infinite loops
+    all_tool_results = []
     iteration = 0
 
-    while iteration < max_iterations:
+    while iteration < MAX_ITERATIONS:
         iteration += 1
 
         # Get response from model
         response = model.invoke(langchain_messages)
-
-        # Add AI response to messages
         langchain_messages.append(response)
 
         # If no tool calls, we're done
@@ -282,57 +441,13 @@ IMPORTANT:
             break
 
         # Execute all tool calls
-        from langchain_core.messages import ToolMessage
-        tool_messages = []
-
-        for tool_call in tool_calls:
-            # LangChain tool calls are typically dicts with name, args, id
-            if isinstance(tool_call, dict):
-                tool_name = tool_call.get("name")
-                tool_args = tool_call.get("args", {})
-                tool_call_id = tool_call.get("id", "")
-            else:
-                # Fallback for object-based tool calls
-                tool_name = getattr(tool_call, "name", None)
-                tool_args = getattr(tool_call, "args", {})
-                tool_call_id = getattr(tool_call, "id", "")
-
-            # Find and execute the tool
-            tool_func = next((t for t in tools if t.name == tool_name), None)
-            if tool_func:
-                try:
-                    result = tool_func.invoke(tool_args)
-                    tool_results.append({
-                        "tool": tool_name,
-                        "args": tool_args,
-                        "result": result
-                    })
-
-                    # Create tool message for model - use JSON for better parsing
-                    import json
-                    result_str = json.dumps(result) if isinstance(result, (dict, list)) else str(result)
-                    tool_msg = ToolMessage(
-                        content=result_str,
-                        tool_call_id=tool_call_id
-                    )
-                    tool_messages.append(tool_msg)
-                except Exception as e:
-                    error_msg = f"Error executing {tool_name}: {str(e)}"
-                    tool_results.append({
-                        "tool": tool_name,
-                        "args": tool_args,
-                        "error": str(e)
-                    })
-                    tool_msg = ToolMessage(
-                        content=error_msg,
-                        tool_call_id=tool_call_id
-                    )
-                    tool_messages.append(tool_msg)
+        tool_results, tool_messages = execute_tool_calls(tool_calls, tools)
+        all_tool_results.extend(tool_results)
 
         # Add tool messages to conversation
         langchain_messages.extend(tool_messages)
 
-    # Get final response text
+    # Extract final response text
     final_response = ""
     if langchain_messages:
         last_msg = langchain_messages[-1]
@@ -341,5 +456,5 @@ IMPORTANT:
 
     return {
         "content": final_response,
-        "tool_calls": tool_results if tool_results else None
+        "tool_calls": all_tool_results if all_tool_results else None
     }

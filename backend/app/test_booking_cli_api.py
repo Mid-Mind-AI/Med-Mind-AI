@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 import json
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
-from models.booking_model import SYSTEM_PROMPT, create_booking_agent
+from models.booking_model import create_booking_agent, get_system_prompt
 
 # API base URL
 API_BASE = "http://localhost:8000"
@@ -180,37 +180,9 @@ def complete_booking_turn_api(chat_history: List[Dict], user_message: str) -> Di
     """Process booking with API integration."""
     _, model, _ = create_booking_agent()
 
-    # Get current date/time for context
-    from datetime import datetime, timedelta, timezone
-    now = datetime.now(timezone.utc)
-    current_date_str = now.strftime("%Y-%m-%d")
-    current_time_str = now.strftime("%H:%M:%S")
-    current_datetime_str = now.isoformat()
-    tomorrow_date_str = (now + timedelta(days=1)).strftime("%Y-%m-%d")
-
-    # Enhanced system prompt with current date/time context
-    enhanced_system_prompt = SYSTEM_PROMPT + f"""
-
-CURRENT DATE AND TIME INFORMATION (use this for "today" and "tomorrow"):
-- Current Date (UTC): {current_date_str}
-- Current Time (UTC): {current_time_str}
-- Current DateTime (ISO): {current_datetime_str}
-- Today's Date: {current_date_str}
-- Tomorrow's Date: {tomorrow_date_str}
-
-IMPORTANT:
-- When the user says "today", use {current_date_str}. When they say "tomorrow", use {tomorrow_date_str}.
-- Always format dates in ISO 8601 format with timezone (e.g., "2025-11-02T20:00:00+00:00").
-- TIMEZONE CONVERSION: The user is in approximately UTC-5 (Eastern Time). When they say a time, ADD 5 HOURS to convert to UTC:
-  * "3 PM" local = 20:00 UTC (15:00 + 5 = 20:00)
-  * "2 PM" local = 19:00 UTC (14:00 + 5 = 19:00)
-  * "10 AM" local = 15:00 UTC (10:00 + 5 = 15:00)
-  * "10 PM" local = 03:00 UTC next day (22:00 + 5 = 27:00 - 24 = 03:00 next day)
-- CRITICAL: If user says "3 PM", you MUST use 20:00 UTC (not 15:00 UTC), so it displays correctly as 3 PM in their timezone
-"""
-
     # Convert chat history to LangChain messages
-    langchain_messages = [SystemMessage(content=enhanced_system_prompt)]
+    # Use get_system_prompt() which includes current date/time context
+    langchain_messages = [SystemMessage(content=get_system_prompt())]
     for msg in chat_history:
         if msg["role"] == "user":
             langchain_messages.append(HumanMessage(content=msg["content"]))

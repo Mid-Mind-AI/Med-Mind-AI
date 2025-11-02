@@ -18,6 +18,8 @@ type BackendEvent = {
 type CalendarEvent = {
   id: number;
   name: string;
+  patient_name: string;
+  phone_number: string;
   time: string;
   datetime: string;
 };
@@ -53,6 +55,8 @@ export default function Admin() {
             // Use timestamp as numeric id to satisfy the calendar's number type
             id: new Date(ev.start).getTime(),
             name: `${ev.patient_name} (${ev.phone_number})`,
+            patient_name: ev.patient_name,
+            phone_number: ev.phone_number,
             time: format(startDate, "h:mm a"),
             datetime: ev.start,
           });
