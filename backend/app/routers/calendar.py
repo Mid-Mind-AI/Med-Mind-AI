@@ -1,6 +1,8 @@
 from app import calendar_store as cal
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
+from datetime import datetime
+from app.schema.Events import Event
 
 router = APIRouter(prefix="/calendar", tags=["calendar"])
 
@@ -11,27 +13,19 @@ class AvailabilityRequest(BaseModel):
 	timezone: str
 
 
-class EventCreate(BaseModel):
-	title: str
-	start: str
-	end: str
-	timezone: str
-	attendees: list[str] | None = None
-	notes: str | None = None
+
 
 
 @router.get("")
-def get_calendar(month: str = Query(..., pattern=r"^\d{4}-\d{2}$")):
-	# month: "YYYY-MM"
-	year, mon = month.split("-")
-	events = cal.list_month_events(int(year), int(mon))
+def get_calendar(time: datetime):
+	events = cal.list_month_events(time)
 	return {"events": events}
 
 
 @router.post("/events")
-def create_calendar_event(payload: EventCreate):
+def create_calendar_event(payload: Event):
 	try:
-		ev = cal.create_event(payload.model_dump())
+		ev = cal.create_event(payload)
 		return {"event": ev}
 	except Exception as e:
 		raise HTTPException(status_code=400, detail=str(e))
@@ -40,7 +34,7 @@ def create_calendar_event(payload: EventCreate):
 @router.post("/availability/check")
 def availability_check(payload: AvailabilityRequest):
 	try:
-		return cal.check_availability(payload.start, payload.end)
+		return cal.check_availability(payload.start, payload.end, payload.timezone)
 	except Exception as e:
 		raise HTTPException(status_code=400, detail=str(e))
 

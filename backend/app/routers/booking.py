@@ -2,7 +2,7 @@ import calendar_store as cal
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from ..models.booking_model import complete_booking_turn
+from ..agents.booking_model import complete_booking_turn
 
 router = APIRouter(prefix="/booking", tags=["booking"])
 
@@ -26,11 +26,11 @@ def booking_chat(payload: ChatRequest):
 
     # Fast paths based on explicit intent from UI:
     if payload.intent == "check":
-        if not (payload.start and payload.end):
-            raise HTTPException(400, "start and end required")
+        if not (payload.start and payload.end and payload.timezone):
+            raise HTTPException(400, "start, end, and timezone required")
         return {
             "reply": model_reply["content"],
-            "availability": cal.check_availability(payload.start, payload.end),
+            "availability": cal.check_availability(payload.start, payload.end, payload.timezone),
         }
 
     if payload.intent == "create":
@@ -67,7 +67,7 @@ def booking_chat(payload: ChatRequest):
         while t + slot <= end_of_day and len(suggestions) < payload.num_slots:
             s = t.isoformat()
             e = (t + slot).isoformat()
-            if cal.check_availability(s, e)["available"]:
+            if cal.check_availability(s, e, "UTC")["available"]:
                 suggestions.append({"start": s, "end": e})
             t += slot
 
