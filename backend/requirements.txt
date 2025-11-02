@@ -1,5 +1,8 @@
 fastapi
 uvicorn[standard]
 python-dotenv
-openai==0.28.1
+openai>=1.30.0
+langchain-openai>=0.2.0
+langchain-core>=0.3.0
 pydantic
+requests

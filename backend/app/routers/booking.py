@@ -1,6 +1,7 @@
-import calendar_store as cal
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+
+from app import calendar_store as cal
 
 from ..models.booking_model import complete_booking_turn
 

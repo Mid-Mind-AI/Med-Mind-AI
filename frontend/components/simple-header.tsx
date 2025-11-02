@@ -33,6 +33,7 @@ export function SimpleHeader() {
 				<div className="hidden items-center gap-2 lg:flex">
 					{links.map((link) => (
 						<a
+							key={link.label}
 							className={buttonVariants({ variant: 'ghost' })}
 							href={link.href}
 						>
@@ -58,6 +59,7 @@ export function SimpleHeader() {
 						<div className="grid gap-y-2 overflow-y-auto px-4 pt-12 pb-5">
 							{links.map((link) => (
 								<a
+									key={link.label}
 									className={buttonVariants({
 										variant: 'ghost',
 										className: 'justify-start',

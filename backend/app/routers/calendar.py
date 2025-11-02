@@ -1,6 +1,9 @@
-import calendar_store as cal
+import sys
+
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
+
+from app import calendar_store as cal
 
 router = APIRouter(prefix="/calendar", tags=["calendar"])
 
@@ -12,11 +15,11 @@ class AvailabilityRequest(BaseModel):
 
 
 class EventCreate(BaseModel):
-	title: str
+	patient_name: str
+	phone_number: str
 	start: str
 	end: str
 	timezone: str
-	attendees: list[str] | None = None
 	notes: str | None = None
 
 
@@ -47,10 +50,7 @@ def availability_check(payload: AvailabilityRequest):
 
 @router.get("/__debug")
 def debug_calendar_store():
-    import sys
-    import types
 
-    import calendar_store as cal
     return {
         "module_file": getattr(cal, "__file__", None),
         "has_list_month_events": hasattr(cal, "list_month_events"),

@@ -1,112 +1,84 @@
+"use client";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { AIVoiceInput } from "@/components/ui/ai-voice-input";
 import { FullScreenCalendar } from "@/components/ui/fullscreen-calendar";
-const dummyEvents = [
-    {
-      day: new Date("2025-01-02"),
-      events: [
-        {
-          id: 1,
-          name: "Q1 Planning Session",
-          time: "10:00 AM",
-          datetime: "2025-01-02T00:00",
-        },
-        {
-          id: 2,
-          name: "Team Sync",
-          time: "2:00 PM",
-          datetime: "2025-01-02T00:00",
-        },
-      ],
-    },
-    {
-      day: new Date("2025-01-07"),
-      events: [
-        {
-          id: 3,
-          name: "Product Launch Review",
-          time: "2:00 PM",
-          datetime: "2025-01-07T00:00",
-        },
-        {
-          id: 4,
-          name: "Marketing Sync",
-          time: "11:00 AM",
-          datetime: "2025-01-07T00:00",
-        },
-        {
-          id: 5,
-          name: "Vendor Meeting",
-          time: "4:30 PM",
-          datetime: "2025-01-07T00:00",
-        },
-      ],
-    },
-    {
-      day: new Date("2025-01-10"),
-      events: [
-        {
-          id: 6,
-          name: "Team Building Workshop",
-          time: "11:00 AM",
-          datetime: "2025-01-10T00:00",
-        },
-      ],
-    },
-    {
-      day: new Date("2025-01-13"),
-      events: [
-        {
-          id: 7,
-          name: "Budget Analysis Meeting",
-          time: "3:30 PM",
-          datetime: "2025-01-14T00:00",
-        },
-        {
-          id: 8,
-          name: "Sprint Planning",
-          time: "9:00 AM",
-          datetime: "2025-01-14T00:00",
-        },
-        {
-          id: 9,
-          name: "Design Review",
-          time: "1:00 PM",
-          datetime: "2025-01-14T00:00",
-        },
-      ],
-    },
-    {
-      day: new Date("2025-01-16"),
-      events: [
-        {
-          id: 10,
-          name: "Client Presentation",
-          time: "10:00 AM",
-          datetime: "2025-01-16T00:00",
-        },
-        {
-          id: 11,
-          name: "Team Lunch",
-          time: "12:30 PM",
-          datetime: "2025-01-16T00:00",
-        },
-        {
-          id: 12,
-          name: "Project Status Update",
-          time: "2:00 PM",
-          datetime: "2025-01-16T00:00",
-        },
-      ],
-    },
-  ]
+import { format } from "date-fns";
+
+type BackendEvent = {
+  id: string;
+  patient_name: string;
+  phone_number: string;
+  start: string; // ISO 8601
+  end: string;   // ISO 8601
+  timezone: string;
+  notes: string;
+};
+
+type CalendarEvent = {
+  id: number;
+  name: string;
+  time: string;
+  datetime: string;
+};
+
+type CalendarDay = {
+  day: Date;
+  events: CalendarEvent[];
+};
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+
 export default function Admin() {
+  const [data, setData] = useState<CalendarDay[]>([]);
+
+  useEffect(() => {
+    const today = new Date();
+    const monthParam = format(today, "yyyy-MM");
+
+    fetch(`${API_BASE}/calendar?month=${monthParam}`)
+      .then((r) => r.json())
+      .then((json) => {
+        const events: BackendEvent[] = json.events || [];
+
+        // Group backend events by calendar day
+        const groups = new Map<string, CalendarEvent[]>();
+
+        for (const ev of events) {
+          const startDate = new Date(ev.start);
+          const dayKey = format(startDate, "yyyy-MM-dd");
+          const arr = groups.get(dayKey) || [];
+
+          arr.push({
+            // Use timestamp as numeric id to satisfy the calendar's number type
+            id: new Date(ev.start).getTime(),
+            name: `${ev.patient_name} (${ev.phone_number})`,
+            time: format(startDate, "h:mm a"),
+            datetime: ev.start,
+          });
+          groups.set(dayKey, arr);
+        }
+
+        const mapped: CalendarDay[] = Array.from(groups.entries()).map(
+          ([dayKey, evs]) => ({
+            day: new Date(dayKey),
+            events: evs,
+          })
+        );
+
+        setData(mapped);
+      })
+      .catch((e) => {
+        console.error("Failed to load events", e);
+        setData([]);
+      });
+  }, []);
+
   return (
     <div className="flex flex-col items-center justify-center bg-background rounded-lg ">
-            
-        <div className="flex h-screen w-full p-8">
-            <FullScreenCalendar data={dummyEvents} />
-        </div>
+      <div className="flex h-screen w-full p-8">
+        <FullScreenCalendar data={data} />
+      </div>
     </div>
   );
 }

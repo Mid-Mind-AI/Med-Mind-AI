@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import calendar as calendar_router
+
+from app.routers import calendar as calendar_router
 
 app = FastAPI()
 
