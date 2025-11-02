@@ -4,12 +4,19 @@ import os
 import tempfile
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+from dotenv import load_dotenv
+
+load_dotenv()
 
 router = APIRouter(prefix="/transcribe", tags=["transcribe"])
 
 # Initialize Whisper model (load once on server start)
-# Using base model - use "tiny", "base", "small", "medium", "large" for better accuracy
-model = WhisperModel("base", device="cpu", compute_type="int8")
+# Using model from .env or default to "base"
+model_name = os.getenv("FASTER_WHISPER_MODEL", "base")
+device = os.getenv("FASTER_WHISPER_DEVICE", "cpu")
+compute_type = os.getenv("FASTER_WHISPER_COMPUTE", "int8")
+
+model = WhisperModel(model_name, device=device, compute_type=compute_type)
 
 # Thread pool for running inference in background
 executor = ThreadPoolExecutor(max_workers=2)
