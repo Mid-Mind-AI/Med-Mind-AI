@@ -27,6 +27,7 @@ async def transcribe_audio(audio: UploadFile = File(...)):
     Transcribe audio file using Faster-Whisper (local, free)
     Accepts audio files in various formats (mp3, mp4, mpeg, mpga, m4a, wav, webm)
     """
+    tmp_file_path = None
     try:
         # Read file contents
         contents = await audio.read()
@@ -40,24 +41,23 @@ async def transcribe_audio(audio: UploadFile = File(...)):
             tmp_file.write(contents)
             tmp_file_path = tmp_file.name
 
-        try:
-            # Run transcription in thread pool (faster-whisper is synchronous)
-            loop = asyncio.get_event_loop()
-            segments, info = await loop.run_in_executor(
-                executor,
-                lambda: model.transcribe(tmp_file_path)
-            )
+        # Run transcription in thread pool (faster-whisper is synchronous)
+        loop = asyncio.get_event_loop()
+        segments, info = await loop.run_in_executor(
+            executor,
+            lambda: model.transcribe(tmp_file_path)
+        )
 
-            # Extract text from segments
-            transcript_text = " ".join([segment.text for segment in segments])
+        # Extract text from segments
+        transcript_text = " ".join([segment.text for segment in segments])
 
-            return {"text": transcript_text}
-        finally:
-            # Clean up temporary file
-            if os.path.exists(tmp_file_path):
-                os.unlink(tmp_file_path)
+        return {"text": transcript_text}
 
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
+    finally:
+        # Clean up temporary file
+        if tmp_file_path and os.path.exists(tmp_file_path):
+            os.unlink(tmp_file_path)
