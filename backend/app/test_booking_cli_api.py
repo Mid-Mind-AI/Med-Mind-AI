@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 import json
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
-from models.booking_model import create_booking_agent, get_system_prompt
+from models.booking_model import get_model_and_tools, get_system_prompt
 
 # API base URL
 API_BASE = "http://localhost:8000"
@@ -36,7 +36,7 @@ def check_availability_via_api(start_iso: str, end_iso: str) -> Dict[str, Any]:
         return {"available": False, "error": str(e), "conflicts": []}
 
 
-def create_event_via_api(patient_name: str, phone_number: str, start_iso: str, end_iso: str,
+def create_event_via_api(patient_name: str, phone_number: str, doctor_name: str, start_iso: str, end_iso: str,
                          timezone_str: str = "UTC",
                          notes: str = None) -> Dict[str, Any]:
     """Create event via API endpoint."""
@@ -44,6 +44,7 @@ def create_event_via_api(patient_name: str, phone_number: str, start_iso: str, e
         payload = {
             "patient_name": patient_name,
             "phone_number": phone_number,
+            "doctor_name": doctor_name,
             "start": start_iso,
             "end": end_iso,
             "timezone": timezone_str,
@@ -178,7 +179,7 @@ def format_tool_calls(tool_calls):
 
 def complete_booking_turn_api(chat_history: List[Dict], user_message: str) -> Dict[str, Any]:
     """Process booking with API integration."""
-    _, model, _ = create_booking_agent()
+    model, _ = get_model_and_tools()
 
     # Convert chat history to LangChain messages
     # Use get_system_prompt() which includes current date/time context

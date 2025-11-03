@@ -27,7 +27,7 @@ def create_event_summary(
 ) -> Dict:
     """
     Create a summary for an event popup in the calendar.
-    
+
     Args:
         patient_name: Name of the patient
         doctor_name: Name of the doctor
@@ -37,14 +37,25 @@ def create_event_summary(
         medical_history: Relevant medical history
         ai_insights: AI-generated insights
         notes: Additional notes
-        
+
     Returns:
         Dict: Structured summary for the event popup
     """
+    # Defensive defaults to avoid 500s when optional fields are missing
+    if not isinstance(appointment, dict):
+        appointment = {}
+
+    appt_datetime = appointment.get("datetime")
+    if not appt_datetime:
+        # Use ISO now if not provided; frontend can still render
+        appt_datetime = datetime.utcnow().isoformat() + "Z"
+
+    duration = appointment.get("duration", 30)
+
     summary = EventSummary(
         title=f"Appointment - {patient_name}",
-        datetime=appointment['datetime'],
-        duration=appointment.get('duration', 30),
+        datetime=appt_datetime,
+        duration=duration,
         patient_name=patient_name,
         doctor_name=doctor_name,
         primary_concern=primary_concern,
@@ -53,14 +64,14 @@ def create_event_summary(
         ai_insights=ai_insights,
         notes=notes
     )
-    
+
     return summary.dict()
 
 def format_medications(medications: List[Dict[str, str]]) -> str:
     """Helper function to format medications for display"""
     if not medications:
         return "No current medications"
-    
+
     return "\n".join([
         f"• {med['name']} - {med['dosage']} ({med['frequency']})"
         for med in medications

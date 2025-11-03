@@ -176,6 +176,7 @@ def handle_create_intent(
         event_data = {
             "patient_name": "Patient",  # TODO: Extract from payload or session
             "phone_number": "",  # TODO: Extract from payload or session
+            "doctor_name": "",  # TODO: Extract from payload or session
             "start": payload.start,
             "end": payload.end,
             "timezone": payload.timezone,
@@ -239,7 +240,6 @@ def booking_chat(payload: ChatRequest) -> Dict[str, Any]:
     # Get AI model reply for conversational response
     model_reply = complete_booking_turn([], payload.user_message)
 
-    # Handle specific intents if provided
     if payload.intent == "check":
         return handle_check_intent(payload, model_reply)
 

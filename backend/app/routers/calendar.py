@@ -21,6 +21,7 @@ class AvailabilityRequest(BaseModel):
 class EventCreate(BaseModel):
 	patient_name: str
 	phone_number: str
+	doctor_name: str
 	start: str
 	end: str
 	timezone: str

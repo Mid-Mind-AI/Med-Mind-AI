@@ -9,6 +9,7 @@ class Event(TypedDict):
     id: str
     patient_name: str
     phone_number: str
+    doctor_name: str
     start: str
     end: str
     timezone: str
@@ -53,6 +54,7 @@ def _create_event(events: List[Event], event: Dict) -> Event:
         "id": event.get("id") or str(uuid4()),
         "patient_name": event["patient_name"],
         "phone_number": event["phone_number"],
+        "doctor_name": event["doctor_name"],
         "start": event["start"],
         "end": event["end"],
         "timezone": event["timezone"],
