@@ -2,9 +2,9 @@ import sys
 from typing import Any, Dict
 
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-from app import calendar_store as cal
+from app.services import calendar_store as cal
 
 router = APIRouter(prefix="/calendar", tags=["calendar"])
 

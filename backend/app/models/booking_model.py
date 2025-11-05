@@ -7,8 +7,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import calendar_store as cal
 from dotenv import load_dotenv
-from langchain.agents import create_agent
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 
@@ -36,6 +36,67 @@ DEFAULT_START_HOUR = 9
 DEFAULT_END_HOUR = 17
 DEFAULT_NUM_SLOTS = 3
 SLOT_CHECK_INTERVAL_MINUTES = 15
+
+
+# ============================================================================
+# SYSTEM PROMPT TEMPLATE
+# ============================================================================
+
+SYSTEM_PROMPT_TEMPLATE = """You are a helpful clinical booking assistant. Your role is to help patients book appointments.
+
+Your workflow:
+1. When a patient requests a booking, first collect their information: patient name and phone number
+2. Ask for the patient's name and phone number if not provided
+3. When they mention "today" or "tomorrow", use the CURRENT ACTUAL DATE - today means the current date, tomorrow means current date + 1 day
+4. Before creating an event, always check availability for their requested time using check_availability
+5. If the slot is available, create the event using create_event with patient_name and phone_number
+6. If the slot is not available, use suggest_alternative_times to find alternative slots and suggest them to the patient
+7. Always be friendly, professional, and helpful
+8. Confirm booking details before creating events
+
+CRITICAL DATE AND TIME HANDLING:
+- When user says "today" or "tomorrow", you MUST use the actual current date (not dates from past conversations)
+- "Today" = current date (use datetime.now())
+- "Tomorrow" = current date + 1 day
+- NEVER book appointments in the past - always validate the date is today or in the future
+- Always use ISO 8601 format with timezone (e.g., "2025-01-15T14:00:00+00:00" for UTC)
+
+CURRENT DATE AND TIME INFORMATION (use this for "today" and "tomorrow"):
+- Current Date (UTC): {current_date_str}
+- Current Time (UTC): {current_time_str}
+- Current DateTime (ISO): {current_datetime_str}
+- Today's Date: {current_date_str}
+- Tomorrow's Date: {tomorrow_date_str}
+
+IMPORTANT:
+- When the user says "today", use {current_date_str}. When they say "tomorrow", use {tomorrow_date_str}.
+- Always format dates in ISO 8601 format with timezone (e.g., "2025-11-02T20:00:00+00:00").
+
+CRITICAL TIME HANDLING:
+- IMPORTANT: When users specify a time like "3 PM", they almost always mean 3 PM in THEIR LOCAL TIMEZONE, NOT UTC
+- The user's local timezone is approximately UTC-{user_timezone_offset_hours} (Eastern Time)
+- When user says "3 PM", they mean 3 PM local time, which should be converted to UTC before storing
+- TIMEZONE CONVERSION: The user is in approximately UTC-{user_timezone_offset_hours} (Eastern Time). When they say a time, ADD {user_timezone_offset_hours} HOURS to convert to UTC:
+  * "3 PM" local = 20:00 UTC (15:00 + {user_timezone_offset_hours} = 20:00)
+  * "2 PM" local = 19:00 UTC (14:00 + {user_timezone_offset_hours} = 19:00)
+  * "10 AM" local = 15:00 UTC (10:00 + {user_timezone_offset_hours} = 15:00)
+  * "10 PM" local = 03:00 UTC next day (22:00 + {user_timezone_offset_hours} = 27:00 - 24 = 03:00 next day)
+- CRITICAL: If user says "3 PM", you MUST use 20:00 UTC (not 15:00 UTC), so it displays correctly as 3 PM in their timezone
+- Always use 24-hour format (00:00 to 23:59) when creating ISO 8601 timestamps
+- When user provides a time, assume it's in their local timezone (approximately UTC-{user_timezone_offset_hours}) and add {user_timezone_offset_hours} hours to convert to UTC
+- Example: If user wants appointment "tomorrow at 3 PM", and they're in UTC-{user_timezone_offset_hours}:
+  * 3 PM local = 15:00 EST
+  * Convert to UTC: 15:00 + {user_timezone_offset_hours} hours = 20:00 UTC
+  * Create timestamp: "2025-11-02T20:00:00+00:00" (this will display as 3 PM local time)
+
+Additional Guidelines:
+- Patient name and phone number are REQUIRED - ask for them if not provided
+- Default timezone is {default_timezone} if not specified by the user
+- Appointment duration is typically {default_appointment_duration_minutes} minutes unless specified
+- Use 24-hour format for times in ISO timestamps
+- When suggesting alternatives, provide clear options with dates and times
+- Always validate that booking dates are not in the past
+"""
 
 
 # ============================================================================
@@ -82,87 +143,11 @@ def validate_not_in_past(start_iso: str) -> Optional[str]:
 # SYSTEM PROMPT GENERATION
 # ============================================================================
 
-SYSTEM_PROMPT_TEMPLATE = """You are a helpful clinical booking assistant. Your role is to help patients book appointments.
-
-## Communication Style
-
-You are speaking with patients as if you are a front desk clinical assistant. Communicate naturally and conversationally:
-- Use complete sentences and natural speech patterns
-- Do NOT use bullet points, numbered lists, or formatted lists in your responses
-- Speak as a friendly, professional person would in person or on the phone
-- Present information in flowing sentences, not structured lists
-- When offering multiple time options, state them naturally (e.g., "We have availability tomorrow at 2 PM, or on Thursday at 10 AM, or Friday afternoon at 3 PM")
-- Keep responses warm, professional, and human-like
-
-## Your Workflow
-
-1. When a patient requests a booking, first collect their information: patient name, phone number, and which doctor they are visiting
-2. Ask for the patient's name, phone number, and doctor name if not provided
-3. When they mention "today" or "tomorrow", use the CURRENT ACTUAL DATE - today means the current date, tomorrow means current date + 1 day
-4. Before creating an event, always check availability for their requested time using `check_availability`
-5. If the slot is available, create the event using `create_event` with `patient_name`, `phone_number`, and `doctor_name`
-6. If the slot is not available, use `suggest_alternative_times` to find alternative slots and suggest them to the patient
-7. Always be friendly, professional, and helpful
-8. Confirm booking details before creating events
-
-## Critical Date and Time Handling
-
-### Date Handling
-
-- When user says "today" or "tomorrow", you MUST use the actual current date (not dates from past conversations)
-- "Today" = current date (use `datetime.now()`)
-- "Tomorrow" = current date + 1 day
-- NEVER book appointments in the past - always validate the date is today or in the future
-- Always use ISO 8601 format with timezone (e.g., `"2025-01-15T14:00:00+00:00"` for UTC)
-
-### Current Date and Time Information
-
-Use this for "today" and "tomorrow":
-- Current Date (UTC): `{current_date_str}`
-- Current Time (UTC): `{current_time_str}`
-- Current DateTime (ISO): `{current_datetime_str}`
-- Today's Date: `{current_date_str}`
-- Tomorrow's Date: `{tomorrow_date_str}`
-
-**Important:**
-- When the user says "today", use `{current_date_str}`. When they say "tomorrow", use `{tomorrow_date_str}`.
-- Always format dates in ISO 8601 format with timezone (e.g., `"2025-11-02T20:00:00+00:00"`).
-
-### Time Zone Handling
-
-- **IMPORTANT:** When users specify a time like "3 PM", they almost always mean 3 PM in THEIR LOCAL TIMEZONE, NOT UTC
-- The user's local timezone is approximately UTC-`{USER_TIMEZONE_OFFSET_HOURS}` (Eastern Time)
-- When user says "3 PM", they mean 3 PM local time, which should be converted to UTC before storing
-- **TIMEZONE CONVERSION:** The user is in approximately UTC-`{USER_TIMEZONE_OFFSET_HOURS}` (Eastern Time). When they say a time, ADD `{USER_TIMEZONE_OFFSET_HOURS}` HOURS to convert to UTC:
-  - "3 PM" local = 20:00 UTC (15:00 + `{USER_TIMEZONE_OFFSET_HOURS}` = 20:00)
-  - "2 PM" local = 19:00 UTC (14:00 + `{USER_TIMEZONE_OFFSET_HOURS}` = 19:00)
-  - "10 AM" local = 15:00 UTC (10:00 + `{USER_TIMEZONE_OFFSET_HOURS}` = 15:00)
-  - "10 PM" local = 03:00 UTC next day (22:00 + `{USER_TIMEZONE_OFFSET_HOURS}` = 27:00 - 24 = 03:00 next day)
-- **CRITICAL:** If user says "3 PM", you MUST use 20:00 UTC (not 15:00 UTC), so it displays correctly as 3 PM in their timezone
-- Always use 24-hour format (00:00 to 23:59) when creating ISO 8601 timestamps
-- When user provides a time, assume it's in their local timezone (approximately UTC-`{USER_TIMEZONE_OFFSET_HOURS}`) and add `{USER_TIMEZONE_OFFSET_HOURS}` hours to convert to UTC
-- **Example:** If user wants appointment "tomorrow at 3 PM", and they're in UTC-`{USER_TIMEZONE_OFFSET_HOURS}`:
-  - 3 PM local = 15:00 EST
-  - Convert to UTC: 15:00 + `{USER_TIMEZONE_OFFSET_HOURS}` hours = 20:00 UTC
-  - Create timestamp: `"2025-11-02T20:00:00+00:00"` (this will display as 3 PM local time)
-
-## Additional Guidelines
-
-- Patient name, phone number, and doctor name are REQUIRED - ask for them if not provided
-- Always ask which doctor the patient is visiting when collecting booking information
-- Default timezone is `{DEFAULT_TIMEZONE}` if not specified by the user
-- Appointment duration is typically `{DEFAULT_APPOINTMENT_DURATION_MINUTES}` minutes unless specified
-- Use 24-hour format for times in ISO timestamps
-- When suggesting alternatives, provide clear options with dates and times
-- Always validate that booking dates are not in the past
-"""
-
-
 def get_system_prompt() -> str:
-    """Format the system prompt template with current date/time information.
+    """Generate the complete system prompt with current date/time information.
 
     Returns:
-        Formatted system prompt string with dynamic date/time context
+        Complete system prompt string with dynamic date/time context
     """
     # Get current date/time for context
     now = datetime.now(timezone.utc)
@@ -176,9 +161,9 @@ def get_system_prompt() -> str:
         current_time_str=current_time_str,
         current_datetime_str=current_datetime_str,
         tomorrow_date_str=tomorrow_date_str,
-        USER_TIMEZONE_OFFSET_HOURS=USER_TIMEZONE_OFFSET_HOURS,
-        DEFAULT_TIMEZONE=DEFAULT_TIMEZONE,
-        DEFAULT_APPOINTMENT_DURATION_MINUTES=DEFAULT_APPOINTMENT_DURATION_MINUTES
+        user_timezone_offset_hours=USER_TIMEZONE_OFFSET_HOURS,
+        default_timezone=DEFAULT_TIMEZONE,
+        default_appointment_duration_minutes=DEFAULT_APPOINTMENT_DURATION_MINUTES
     )
 
 
@@ -209,14 +194,13 @@ def check_availability(start_iso: str, end_iso: str) -> Dict[str, Any]:
 
 
 @tool
-def create_event(patient_name: str, phone_number: str, doctor_name: str, start_iso: str, end_iso: str,
+def create_event(patient_name: str, phone_number: str, start_iso: str, end_iso: str,
                  timezone_str: str = DEFAULT_TIMEZONE, notes: Optional[str] = None) -> Dict[str, Any]:
     """Create a calendar event/appointment.
 
     Args:
         patient_name: Full name of the patient
         phone_number: Phone number of the patient
-        doctor_name: Name of the doctor the patient is visiting
         start_iso: Start time in ISO 8601 format (e.g., "2025-01-15T14:00:00+00:00")
         end_iso: End time in ISO 8601 format (e.g., "2025-01-15T14:30:00+00:00")
         timezone_str: Timezone string (default: "UTC")
@@ -234,7 +218,6 @@ def create_event(patient_name: str, phone_number: str, doctor_name: str, start_i
         event_data = {
             "patient_name": patient_name,
             "phone_number": phone_number,
-            "doctor_name": doctor_name,
             "start": start_iso,
             "end": end_iso,
             "timezone": timezone_str,
@@ -306,88 +289,30 @@ def suggest_alternative_times(day: str, slot_minutes: int = DEFAULT_APPOINTMENT_
 # ============================================================================
 
 def create_booking_agent():
-    """Create a LangChain ReAct agent for booking appointments.
+    """Create a LangChain agent for booking appointments.
 
     Returns:
-        LangChain agent instance configured with model, tools, and system prompt
+        Tuple of (prompt_template, model_with_tools, tools)
     """
-    model = ChatOpenAI(
+    chat_model = ChatOpenAI(
         model=MODEL_NAME,
         temperature=MODEL_TEMPERATURE,
-        api_key=os.getenv("OPENAI_API_KEY")
+        openai_api_key=os.getenv("OPENAI_API_KEY")
     )
 
+    # Bind tools to the model
     tools = [check_availability, create_event, suggest_alternative_times]
+    model_with_tools = chat_model.bind_tools(tools)
 
-    agent = create_agent(
-        model=model,
-        tools=tools,
-        system_prompt=get_system_prompt()
-    )
+    # Create prompt template
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", get_system_prompt()),
+        MessagesPlaceholder(variable_name="chat_history"),
+        ("human", "{user_message}")
+    ])
 
-    return agent
+    return prompt, model_with_tools, tools
 
-
-def get_model_and_tools():
-    """Get model with tools bound and tools list for backward compatibility.
-
-    This is useful for code that needs to manually execute tools (e.g., API-based execution).
-
-    Returns:
-        Tuple of (model_with_tools, tools_list)
-    """
-    model = ChatOpenAI(
-        model=MODEL_NAME,
-        temperature=MODEL_TEMPERATURE,
-        api_key=os.getenv("OPENAI_API_KEY")
-    )
-
-    tools = [check_availability, create_event, suggest_alternative_times]
-    model_with_tools = model.bind_tools(tools)
-
-    return model_with_tools, tools
-
-
-def complete_booking_turn(chat_history: List[Dict], user_message: str) -> Dict[str, Any]:
-    """Process a booking turn using LangChain ReAct agent.
-
-    Args:
-        chat_history: List of previous messages in format [{"role": "user/assistant", "content": "..."}, ...]
-        user_message: Current user message
-
-    Returns:
-        Dictionary with 'content' (response text) and optionally 'tool_calls' info
-    """
-    agent = create_booking_agent()
-
-    # Convert chat history to LangChain messages
-    langchain_messages = []
-    for msg in chat_history:
-        if msg["role"] == "user":
-            langchain_messages.append(HumanMessage(content=msg["content"]))
-        elif msg["role"] == "assistant":
-            langchain_messages.append(AIMessage(content=msg["content"]))
-
-    # Add current user message
-    langchain_messages.append(HumanMessage(content=user_message))
-
-    # Invoke agent - it handles tool calls automatically via ReAct pattern
-    response = agent.invoke({"messages": langchain_messages})
-
-    # Extract final response from the messages
-    messages = response.get("messages", [])
-    final_response = ""
-    if messages:
-        last_msg = messages[-1]
-        if hasattr(last_msg, 'content'):
-            final_response = last_msg.content or ""
-        elif isinstance(last_msg, dict):
-            final_response = last_msg.get("content", "")
-
-    return {
-        "content": final_response,
-        "tool_calls": None  # ReAct agent handles this internally
-    }
 
 # ============================================================================
 # MESSAGE CONVERSION UTILITIES
@@ -488,3 +413,57 @@ def execute_tool_calls(tool_calls: List[Any], tools: List) -> Tuple[List, List]:
     return tool_results, tool_messages
 
 
+# ============================================================================
+# BOOKING TURN PROCESSING
+# ============================================================================
+
+def complete_booking_turn(chat_history: List[Dict], user_message: str) -> Dict[str, Any]:
+    """Process a booking turn - handles user message and tool calls with iterative agent execution.
+
+    Args:
+        chat_history: List of previous messages in format [{"role": "user/assistant", "content": "..."}, ...]
+        user_message: Current user message
+
+    Returns:
+        Dictionary with 'content' (response text) and optionally 'tool_calls' info
+    """
+    _, model, tools = create_booking_agent()
+
+    # Convert chat history to LangChain messages
+    langchain_messages = convert_chat_history_to_langchain(chat_history)
+
+    # Add current user message
+    langchain_messages.append(HumanMessage(content=user_message))
+
+    # keep executing until no more tool calls (this is cool ngl)
+    all_tool_results = []
+    iteration = 0
+
+    while iteration < MAX_ITERATIONS:
+        iteration += 1
+
+        response = model.invoke(langchain_messages)
+        langchain_messages.append(response)
+
+        tool_calls = getattr(response, 'tool_calls', None) or []
+        if not tool_calls:
+            break
+
+        # Execute all tool calls
+        tool_results, tool_messages = execute_tool_calls(tool_calls, tools)
+        all_tool_results.extend(tool_results)
+
+        # Add tool messages to conversation
+        langchain_messages.extend(tool_messages)
+
+    # Extract final response text
+    final_response = ""
+    if langchain_messages:
+        last_msg = langchain_messages[-1]
+        if isinstance(last_msg, AIMessage):
+            final_response = last_msg.content or ""
+
+    return {
+        "content": final_response,
+        "tool_calls": all_tool_results if all_tool_results else None
+    }

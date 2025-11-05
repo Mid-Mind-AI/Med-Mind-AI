@@ -11,13 +11,14 @@ from typing import Any, Dict, List
 
 import requests
 
-# Add app directory to path
-sys.path.insert(0, str(Path(__file__).parent))
+# Add backend directory to path (so we can import app.*)
+backend_dir = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(backend_dir))
 
 import json
 
+from app.models.booking_model import get_model_and_tools, get_system_prompt
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
-from models.booking_model import get_model_and_tools, get_system_prompt
 
 # API base URL
 API_BASE = "http://localhost:8000"
@@ -268,6 +269,111 @@ def complete_booking_turn_api(chat_history: List[Dict], user_message: str) -> Di
     }
 
 
+def start_pre_visit_questions(event_id: str):
+    """Start the pre-visit questions flow after event creation."""
+    try:
+        # Get first question
+        url = f"{API_BASE}/pre-visit/question/{event_id}"
+        response = requests.get(url, timeout=10)
+
+        if response.status_code != 200:
+            try:
+                error_detail = response.json().get("detail", response.text)
+            except (ValueError, KeyError):
+                error_detail = response.text or f"HTTP {response.status_code}"
+            print(f"⚠️  Could not start pre-visit questions: {error_detail}")
+            print(f"   URL: {url}")
+            print(f"   Status: {response.status_code}")
+            return
+
+        if not response.text or response.text.strip() == "":
+            print("⚠️  Empty response from server")
+            print(f"   URL: {url}")
+            print(f"   Status: {response.status_code}")
+            return
+
+        try:
+            data = response.json()
+        except ValueError:
+            print("⚠️  Could not parse response as JSON")
+            print(f"   URL: {url}")
+            print(f"   Status: {response.status_code}")
+            print(f"   Response text: {response.text[:200]}")
+            return
+        if data.get("is_complete"):
+            print("✅ Pre-visit questions already completed.")
+            return
+
+        question = data.get("question")
+        if not question:
+            print("⚠️  No question available.")
+            return
+
+        question_count = data.get("question_count", 0)
+        print(f"🤖 Assistant: {question}")
+
+        # Ask questions interactively
+        while question_count < 7:
+            answer = input("\n👤 You: ").strip()
+
+            if not answer:
+                print("Please provide an answer.")
+                continue
+
+            # Submit answer
+            submit_response = requests.post(
+                f"{API_BASE}/pre-visit/answer",
+                json={
+                    "event_id": event_id,
+                    "question": question,
+                    "answer": answer
+                }
+            )
+
+            if submit_response.status_code != 200:
+                print(f"⚠️  Error submitting answer: {submit_response.text}")
+                break
+
+            submit_data = submit_response.json()
+
+            if submit_data.get("is_complete"):
+                print("\n✅ All pre-visit questions completed!")
+                print("📄 Generating pre-visit report...")
+
+                # Generate report
+                report_response = requests.post(
+                    f"{API_BASE}/pre-visit/generate-report",
+                    json={"event_id": event_id}
+                )
+
+                if report_response.status_code == 200:
+                    report_data = report_response.json()
+                    print("✅ Pre-visit report generated successfully!")
+                    print("\n📋 Report Summary:")
+                    report = report_data.get("report", {})
+                    if report.get("primary_concern"):
+                        print(f"   Primary Concern: {report['primary_concern']}")
+                    if report.get("ai_insights"):
+                        print(f"   AI Insights: {report['ai_insights']}")
+                else:
+                    print(f"⚠️  Could not generate report: {report_response.text}")
+                break
+
+            question = submit_data.get("next_question")
+            if question:
+                print(f"\n🤖 Assistant: {question}")
+                question_count = submit_data.get("question_count", 0)
+            else:
+                break
+
+        print("\n" + "="*70 + "\n")
+
+    except Exception as e:
+        print(f"⚠️  Error in pre-visit questions: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+
 def main():
     """Main interactive loop for testing the booking agent via API."""
     print("=" * 70)
@@ -320,6 +426,18 @@ def main():
 
             if tool_calls:
                 print(format_tool_calls(tool_calls))
+
+                # Check if an event was created successfully
+                for tool_call in tool_calls:
+                    if tool_call.get("tool") == "create_event":
+                        result = tool_call.get("result", {})
+                        if result.get("success") and result.get("event"):
+                            event_id = result["event"].get("id")
+                            if event_id:
+                                print("\n" + "="*70)
+                                print("📋 Starting Pre-Visit Questions...")
+                                print("="*70 + "\n")
+                                start_pre_visit_questions(event_id)
 
             chat_history.append({"role": "user", "content": user_input})
             chat_history.append({"role": "assistant", "content": response_text})

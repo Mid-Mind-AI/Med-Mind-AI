@@ -78,3 +78,11 @@ def check_availability(start_iso: str, end_iso: str) -> Dict:
 def create_event(event: Dict) -> Event:
     """Create a new event and add it to the global EVENTS list."""
     return _create_event(EVENTS, event)
+
+
+def get_event_by_id(event_id: str) -> Event | None:
+    """Get an event by its ID."""
+    for event in EVENTS:
+        if event["id"] == event_id:
+            return event
+    return None

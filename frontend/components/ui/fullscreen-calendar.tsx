@@ -34,8 +34,10 @@ interface Event {
   name: string
   patient_name: string
   phone_number: string
+  doctor_name: string
   time: string
   datetime: string
+  eventId?: string // Backend event ID
 }
 
 interface CalendarData {
