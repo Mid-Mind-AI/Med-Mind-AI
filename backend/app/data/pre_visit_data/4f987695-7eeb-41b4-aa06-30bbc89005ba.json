@@ -1,0 +1,50 @@
+{
+  "qa": [
+    {
+      "question": "Before you leave, I would like to ask you a few questions as to why you are visiting today. Would you like to continue?",
+      "answer": "sure"
+    },
+    {
+      "question": "Could you tell me the main reason for your visit today?",
+      "answer": "headache"
+    },
+    {
+      "question": "What kind of headaches are you experiencing, and how long have you been having them?",
+      "answer": "migraine"
+    },
+    {
+      "question": "Q: How often do you experience these migraines, and how long do they typically last?",
+      "answer": "once a day"
+    },
+    {
+      "question": "Q: Are there any specific triggers that you have noticed that might bring on your migraines?",
+      "answer": "studying"
+    },
+    {
+      "question": "Q: Have you tried any treatments or medications to help relieve your migraine symptoms?",
+      "answer": "nope"
+    },
+    {
+      "question": "Q: Have you experienced any other symptoms associated with your migraines, such as nausea or sensitivity to light?",
+      "answer": "nope"
+    }
+  ],
+  "event_id": "4f987695-7eeb-41b4-aa06-30bbc89005ba",
+  "report": {
+    "primary_concern": "The patient, Bob, is experiencing daily migraines characterized by severe headache pain. These migraines occur once a day and have been triggered specifically by studying. Bob reports no associated symptoms such as nausea or sensitivity to light, and he has not attempted any treatments or medications for relief.",
+    "medications": [],
+    "medical_history": "Bob does not report any chronic conditions and has not undergone any surgeries or hospitalizations. There is no mention of any allergies. His family history was not discussed, and he appears generally healthy aside from the migraines. No other medical information was provided.",
+    "ai_insights": "Bob's daily migraines suggest a potential diagnosis of chronic migraine, especially since they are triggered by specific activities like studying. The absence of additional symptoms such as nausea or light sensitivity is noteworthy and may indicate that the migraines are less severe in terms of associated migraine symptoms. It will be important for the doctor to explore Bob's study habits, potential stress factors, and lifestyle choices that could be contributing to the frequency of his migraines. Recommendations may include discussing preventive treatments, lifestyle modifications, and possibly keeping a headache diary to identify more triggers.",
+    "suggested_questions": [
+      "Can you describe the quality of the headache pain (e.g., throbbing, constant)?",
+      "How long have you been experiencing these migraines?",
+      "Have you noticed any other activities or factors that might trigger your migraines?",
+      "What is your typical study routine, and how many hours do you spend studying each day?",
+      "Have you ever experienced migraines in the past, or is this a new occurrence?",
+      "Do you have any family history of migraines or headaches?",
+      "Are there any activities that alleviate your headache symptoms?",
+      "Have you had any changes in sleep patterns or stress levels recently?"
+    ],
+    "notes": "Bob has not previously sought treatment for his migraines, which may indicate a lack of awareness of possible management options. Understanding his study environment and habits could be crucial in addressing his migraines effectively."
+  }
+}

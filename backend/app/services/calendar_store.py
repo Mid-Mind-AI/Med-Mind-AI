@@ -2,6 +2,8 @@
 from datetime import datetime
 from typing import Dict, List, TypedDict
 from uuid import uuid4
+import json
+from pathlib import Path
 
 
 # Canonical event shape stored in memory
@@ -16,6 +18,48 @@ class Event(TypedDict):
     notes: str
 
 EVENTS: List[Event] = []
+
+# Simple JSON persistence (dev-friendly)
+_DATA_DIR = Path(__file__).parent.parent / "data"
+_DATA_DIR.mkdir(exist_ok=True)
+_EVENTS_FILE = _DATA_DIR / "calendar_events.json"
+
+def _load_events_from_disk() -> List[Event]:
+    try:
+        if _EVENTS_FILE.exists():
+            raw = json.loads(_EVENTS_FILE.read_text())
+            # Basic validation/shape normalization
+            events: List[Event] = []
+            for ev in raw if isinstance(raw, list) else []:
+                if all(k in ev for k in [
+                    "id", "patient_name", "phone_number", "doctor_name",
+                    "start", "end", "timezone",
+                ]):
+                    events.append({
+                        "id": str(ev["id"]),
+                        "patient_name": ev["patient_name"],
+                        "phone_number": ev["phone_number"],
+                        "doctor_name": ev["doctor_name"],
+                        "start": ev["start"],
+                        "end": ev["end"],
+                        "timezone": ev["timezone"],
+                        "notes": ev.get("notes", ""),
+                    })
+            return events
+    except Exception:
+        # If the file is corrupt or unreadable, start fresh (dev resilience)
+        pass
+    return []
+
+def _save_events_to_disk(events: List[Event]) -> None:
+    try:
+        _EVENTS_FILE.write_text(json.dumps(events, indent=2))
+    except Exception:
+        # Ignore save failures in dev; will just be in-memory
+        pass
+
+# Initialize from disk on import
+EVENTS = _load_events_from_disk()
 
 def _parse_iso(dt: str) -> datetime:
     # ISO 8601 with timezone offset expected, e.g. 2025-01-07T14:00:00-08:00
@@ -61,6 +105,7 @@ def _create_event(events: List[Event], event: Dict) -> Event:
         "notes": event.get("notes", ""),
     }
     events.append(ev)
+    _save_events_to_disk(events)
     return ev
 
 
