@@ -1,23 +1,15 @@
 import React from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-
-interface Medication {
-  name: string;
-  dosage: string;
-  frequency: string;
-}
-
-interface Report {
-  patient_name: string;
-  doctor_name: string;
-  primary_concern?: string;
-  current_medications?: Medication[];
-  medical_history?: string;
-  ai_insights?: string;
-  notes?: string;
-}
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 
 interface EventData {
   id: number;
@@ -41,54 +33,95 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
 }) => {
   if (!isOpen || !event) return null;
 
-  // Parse the datetime to get a formatted date
   const eventDate = new Date(event.datetime);
-  const formattedDate = format(eventDate, "EEEE, MMMM d, yyyy");
+  const formattedDate = format(eventDate, "MMMM d, yyyy");
+  const formattedDateTime = format(eventDate, "MMMM d, yyyy 'at' h:mm a");
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-      <Card className="bg-white rounded-2xl shadow-lg w-[420px] max-h-[90vh] overflow-y-auto p-6 relative animate-fadeIn">
-        <Button
-          onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
-          variant="ghost"
-        >
-          ✖
-        </Button>
+    <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+      <Card className="relative w-[90vw] max-w-[1200px] max-h-[90vh] overflow-y-auto animate-fadeIn border-2 shadow-2xl rounded-2xl bg-gradient-to-br from-white to-neutral-50">
+        {/* Header */}
+        <CardHeader className="relative border-b pb-4">
+          <Button
+            onClick={onClose}
+            variant="ghost"
+            size="icon"
+            className="absolute top-3 right-3 hover:bg-accent"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+          <CardTitle className="text-lg font-semibold text-foreground">
+            Appointment Report
+          </CardTitle>
+        </CardHeader>
 
-        <h2 className="text-xl font-semibold mb-4">Appointment Details</h2>
+        {/* Content - Two Column Layout */}
+        <CardContent className="relative p-6 z-10">
+          <div className="grid grid-cols-3 gap-6">
+            {/* Left Column - 1/3 width */}
+            <div className="col-span-1 space-y-6">
+              {/* Doctor Patient Info Section */}
+              <div className="border-2 rounded-2xl p-4 bg-white">
+                <h3 className="font-semibold text-foreground text-base mb-6">
+                  Doctor Patient Info
+                </h3>
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <p className="font-bold text-gray-600 mb-1">Doctor Name</p>
+                    <p className="text-muted-foreground">{event.name || "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-600 mb-1">Patient Name</p>
+                    <p className="text-muted-foreground">{event.patient_name}</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-600 mb-1">Date of call:</p>
+                    <p className="text-muted-foreground">{formattedDateTime}</p>
+                  </div>
+                </div>
+              </div>
 
-        {/* User Provided Information */}
-        <div className="text-sm text-gray-600 space-y-3 mb-6 pb-6 border-b">
-          <div>
-            <p className="font-medium text-gray-700 mb-1">Patient Name:</p>
-            <p className="text-gray-900">{event.patient_name}</p>
+              {/* Recommended Actions Section */}
+              <div className="border-2 rounded-2xl p-4 bg-white">
+                <h3 className="font-semibold text-foreground text-base mb-4">
+                  Recommended Actions
+                </h3>
+                <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+                  <li>Follow up Call</li>
+                  <li>Prepare blood test for appointment</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Right Column - 2/3 width */}
+            <div className="col-span-2">
+              {/* AI Insights Section */}
+              <div className="border-2 rounded-2xl p-6 bg-white h-full min-h-[400px]">
+                <h3 className="font-semibold text-foreground text-base mb-4">
+                  AI Insights
+                </h3>
+                <div className="border border-dashed border-gray-300 bg-muted/40 rounded-xl p-6 text-center text-muted-foreground min-h-[350px] flex flex-col items-center justify-center hover:border-gray-400 transition">
+                  <p className="text-sm font-medium">
+                    AI insights will be displayed here
+                  </p>
+                  <p className="text-xs mt-1 text-gray-500">
+                    (Placeholder for AI-generated insights)
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
+        </CardContent>
 
-          <div>
-            <p className="font-medium text-gray-700 mb-1">Phone Number:</p>
-            <p className="text-gray-900">{event.phone_number}</p>
-          </div>
-
-          <div>
-            <p className="font-medium text-gray-700 mb-1">Date:</p>
-            <p className="text-gray-900">{formattedDate}</p>
-          </div>
-
-          <div>
-            <p className="font-medium text-gray-700 mb-1">Time:</p>
-            <p className="text-gray-900">{event.time}</p>
-          </div>
-        </div>
-
-        {/* Report Placeholder Section */}
-        <div className="mt-6">
-          <h3 className="font-semibold text-gray-800 mb-3">Report</h3>
-          <div className="bg-gray-50 rounded-lg p-4 border-2 border-dashed border-gray-300 text-center text-gray-500 min-h-[200px] flex items-center justify-center">
-            <p className="text-sm">Report content will be displayed here</p>
-            <p className="text-xs mt-2 text-gray-400">(Placeholder for create_event_summary API)</p>
-          </div>
-        </div>
+        {/* Footer */}
+        <CardFooter className="justify-end border-t bg-muted/40 py-4 px-6">
+          <Button 
+            onClick={onClose} 
+            className="rounded-md bg-green-600 hover:bg-green-700 text-white"
+          >
+            Close
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   );
