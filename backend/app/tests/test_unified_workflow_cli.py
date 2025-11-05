@@ -20,6 +20,13 @@ API_BASE = "http://localhost:8000"
 WORKFLOW_ENDPOINT = f"{API_BASE}/workflow/process"
 STATE_ENDPOINT = f"{API_BASE}/workflow/state"
 
+# ANSI styling for clearer CLI output
+RESET = "\033[0m"
+BOLD = "\033[1m"
+CYAN = "\033[36m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+
 
 def call_workflow(payload: Dict[str, Any]) -> Dict[str, Any]:
     """Call the unified workflow endpoint."""
@@ -53,10 +60,10 @@ def get_workflow_state(event_id: str) -> Dict[str, Any]:
 def print_response(response: Dict[str, Any]) -> None:
     """Print only model output."""
     if "message" in response:
-        print(response['message'])
+        print(f"{GREEN}Assistant:{RESET} {response['message']}")
 
     if "next_question" in response:
-        print(response['next_question'])
+        print(f"{CYAN}Question:{RESET} {response['next_question']}")
 
     if "report" in response:
         print(json.dumps(response["report"], indent=2))
@@ -68,7 +75,7 @@ def booking_flow():
     event_id = None
 
     while True:
-        user_input = input().strip()
+        user_input = input("You: ").strip()
 
         if user_input.lower() in ["exit", "quit"]:
             return None
@@ -78,6 +85,9 @@ def booking_flow():
 
         if not user_input:
             continue
+
+        # visual spacing after the user's input
+        print()
 
         # Add user message to history
         chat_history.append({"role": "user", "content": user_input})
@@ -125,7 +135,8 @@ def questions_flow(event_id: str, initial_question: str = None):
     # Otherwise, fetch it
     if current_question:
         # Print the question we got from booking completion
-        print(current_question)
+        print()  # spacing after the user's last input
+        print(f"{CYAN}Question:{RESET} {current_question}")
         question_count = 0
     else:
         # Fetch the first question
@@ -135,6 +146,8 @@ def questions_flow(event_id: str, initial_question: str = None):
         if not response:
             return False
 
+        # spacing after the user's answer
+        print()
         print_response(response)
         current_question = response.get("next_question")
         question_count = response.get("question_count", 0)
@@ -167,7 +180,7 @@ def questions_flow(event_id: str, initial_question: str = None):
                 break
 
         # Get user input for the current question
-        user_answer = input().strip()
+        user_answer = input("You: ").strip()
 
         if user_answer.lower() in ["exit", "quit"]:
             return False
@@ -190,6 +203,7 @@ def questions_flow(event_id: str, initial_question: str = None):
         if not response:
             continue
 
+        print()  # blank line between prompts
         print_response(response)
 
         # Check if complete - exit immediately if questions are done
@@ -248,6 +262,8 @@ def report_flow(event_id: str):
 def main():
     """Main CLI loop."""
     try:
+        # Greeting message at start of CLI execution
+        print("Hi, How can I help you?")
         # Step 1: Booking
         booking_result = booking_flow()
 
