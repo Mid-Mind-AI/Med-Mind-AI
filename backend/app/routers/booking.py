@@ -4,9 +4,8 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from app import calendar_store as cal
-
-from ..models.booking_model import complete_booking_turn
+from app.models.booking_model import complete_booking_turn
+from app.services import calendar_store as cal
 
 router = APIRouter(prefix="/booking", tags=["booking"])
 
@@ -237,7 +236,9 @@ def booking_chat(payload: ChatRequest) -> Dict[str, Any]:
     Returns:
         Response dictionary with AI reply and optional intent results
     """
-    # Get AI model reply for conversational response
+    # Use workflow function to process booking message
+    # Note: The booking router has special intent handling, so we use workflow
+    # but still need to handle intents separately
     model_reply = complete_booking_turn([], payload.user_message)
 
     if payload.intent == "check":

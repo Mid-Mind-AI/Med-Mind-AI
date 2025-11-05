@@ -9,6 +9,7 @@ type BackendEvent = {
   id: string;
   patient_name: string;
   phone_number: string;
+  doctor_name: string;
   start: string; // ISO 8601
   end: string;   // ISO 8601
   timezone: string;
@@ -20,8 +21,10 @@ type CalendarEvent = {
   name: string;
   patient_name: string;
   phone_number: string;
+  doctor_name: string;
   time: string;
   datetime: string;
+  eventId: string; // Backend event ID
 };
 
 type CalendarDay = {
@@ -52,13 +55,15 @@ export default function Admin() {
           const arr = groups.get(dayKey) || [];
 
           arr.push({
-            // Use timestamp as numeric id to satisfy the calendar's number type
+            // Store the actual event ID as a string, but convert to number for calendar component
             id: new Date(ev.start).getTime(),
-            name: `${ev.patient_name} (${ev.phone_number})`,
+            name: `${ev.doctor_name} - ${ev.patient_name}`,
             patient_name: ev.patient_name,
             phone_number: ev.phone_number,
+            doctor_name: ev.doctor_name,
             time: format(startDate, "h:mm a"),
             datetime: ev.start,
+            eventId: ev.id, // Store the actual backend event ID
           });
           groups.set(dayKey, arr);
         }

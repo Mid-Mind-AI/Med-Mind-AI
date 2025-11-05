@@ -1,0 +1,33 @@
+{
+  "qa": [
+    {
+      "question": "Before you leave, I would like to ask you a few questions as to why you are visiting today. Would you like to continue?",
+      "answer": "sure"
+    },
+    {
+      "question": "Could you tell me the main reason for your visit today?",
+      "answer": "i feel like i lsot my hearing"
+    },
+    {
+      "question": "What symptoms are you experiencing that make you feel like you've lost your hearing?",
+      "answer": "i just cant hear well"
+    },
+    {
+      "question": "Q: Have you noticed if this hearing difficulty is affecting one ear more than the other?",
+      "answer": "no"
+    },
+    {
+      "question": "Q: When did you first start noticing the difficulty in hearing?",
+      "answer": "yesyes"
+    },
+    {
+      "question": "Q: Could you tell me when you first started noticing the difficulty in hearing?",
+      "answer": "tmr"
+    },
+    {
+      "question": "Q: Q: Have you experienced any pain or discomfort in your ears since you noticed the hearing difficulty?",
+      "answer": "no"
+    }
+  ],
+  "event_id": "ddfc1a55-936f-4a6d-98c5-ecf706055b33"
+}

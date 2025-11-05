@@ -16,8 +16,10 @@ interface EventData {
   name: string;
   patient_name: string;
   phone_number: string;
+  doctor_name: string;
   time: string;
   datetime: string;
+  eventId?: string; // Backend event ID
 }
 
 interface EventReportPopupProps {
@@ -26,11 +28,44 @@ interface EventReportPopupProps {
   event: EventData | null;
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+
 const EventReportPopup: React.FC<EventReportPopupProps> = ({
   isOpen,
   onClose,
   event,
 }) => {
+  const [report, setReport] = useState<Report | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen && event?.eventId) {
+      fetchReport(event.eventId);
+    } else {
+      setReport(null);
+      setError(null);
+    }
+  }, [isOpen, event?.eventId]);
+
+  const fetchReport = async (eventId: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_BASE}/report/${eventId}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch report");
+      }
+      const data = await response.json();
+      setReport(data.report);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load report");
+      console.error("Error fetching report:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!isOpen || !event) return null;
 
   const eventDate = new Date(event.datetime);
