@@ -14,7 +14,7 @@ DATA_DIR = Path(__file__).parent.parent / "data" / "pre_visit_data"
 DATA_DIR.mkdir(exist_ok=True)
 
 # Model configuration
-MODEL_NAME = "gpt-4o-mini"  # Using gpt-4o-mini
+MODEL_NAME = "gpt-4o-mini"
 MODEL_TEMPERATURE = 0.7
 
 # ============================================================================

@@ -1,19 +1,15 @@
 import json
 import os
-import sys
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-import calendar_store as cal
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 
-# Add parent directory to path for calendar_store import
-sys.path.insert(0, str(Path(__file__).parent.parent))
+from app.services import calendar_store as cal
 
 load_dotenv()
 
@@ -44,12 +40,19 @@ SLOT_CHECK_INTERVAL_MINUTES = 15
 
 SYSTEM_PROMPT_TEMPLATE = """You are a helpful clinical booking assistant. Your role is to help patients book appointments.
 
+IMPORTANT RESPONSE FORMAT:
+- Always respond in natural, conversational sentences and paragraphs
+- NEVER use bullet points, numbered lists, or markdown formatting
+- Keep responses in plain text format suitable for speech-to-text
+- Write as if you're speaking naturally to the patient
+- Use complete sentences and smooth transitions between ideas
+
 Your workflow:
-1. When a patient requests a booking, first collect their information: patient name and phone number
-2. Ask for the patient's name and phone number if not provided
+1. When a patient requests a booking, first collect their information: patient name, phone number, and doctor name
+2. Ask for the patient's name, phone number, and which doctor they want to see if not provided
 3. When they mention "today" or "tomorrow", use the CURRENT ACTUAL DATE - today means the current date, tomorrow means current date + 1 day
 4. Before creating an event, always check availability for their requested time using check_availability
-5. If the slot is available, create the event using create_event with patient_name and phone_number
+5. If the slot is available, create the event using create_event with patient_name, phone_number, and doctor_name (all three are REQUIRED)
 6. If the slot is not available, use suggest_alternative_times to find alternative slots and suggest them to the patient
 7. Always be friendly, professional, and helpful
 8. Confirm booking details before creating events
@@ -90,12 +93,15 @@ CRITICAL TIME HANDLING:
   * Create timestamp: "2025-11-02T20:00:00+00:00" (this will display as 3 PM local time)
 
 Additional Guidelines:
-- Patient name and phone number are REQUIRED - ask for them if not provided
+- Patient name, phone number, and doctor name are ALL REQUIRED - ask for them if not provided
+- When user mentions a doctor (e.g., "Dr. Rana", "I want to see Dr. Smith"), extract the doctor name and use it when creating the event
+- Doctor name should be in format like "Dr. Rana" or "Dr. Smith" - include the title if provided
 - Default timezone is {default_timezone} if not specified by the user
 - Appointment duration is typically {default_appointment_duration_minutes} minutes unless specified
 - Use 24-hour format for times in ISO timestamps
-- When suggesting alternatives, provide clear options with dates and times
+- When suggesting alternatives, provide clear options with dates and times in natural sentence format
 - Always validate that booking dates are not in the past
+- When confirming bookings or providing information, use full sentences and natural flow, not lists or bullet points
 """
 
 
@@ -194,13 +200,14 @@ def check_availability(start_iso: str, end_iso: str) -> Dict[str, Any]:
 
 
 @tool
-def create_event(patient_name: str, phone_number: str, start_iso: str, end_iso: str,
+def create_event(patient_name: str, phone_number: str, doctor_name: str, start_iso: str, end_iso: str,
                  timezone_str: str = DEFAULT_TIMEZONE, notes: Optional[str] = None) -> Dict[str, Any]:
     """Create a calendar event/appointment.
 
     Args:
         patient_name: Full name of the patient
         phone_number: Phone number of the patient
+        doctor_name: Name of the doctor (e.g., "Dr. Smith" or "Dr. Rana")
         start_iso: Start time in ISO 8601 format (e.g., "2025-01-15T14:00:00+00:00")
         end_iso: End time in ISO 8601 format (e.g., "2025-01-15T14:30:00+00:00")
         timezone_str: Timezone string (default: "UTC")
@@ -218,6 +225,7 @@ def create_event(patient_name: str, phone_number: str, start_iso: str, end_iso: 
         event_data = {
             "patient_name": patient_name,
             "phone_number": phone_number,
+            "doctor_name": doctor_name,
             "start": start_iso,
             "end": end_iso,
             "timezone": timezone_str,

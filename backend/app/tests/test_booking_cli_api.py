@@ -5,20 +5,21 @@ This version uses the API endpoints, so events will show up in the UI.
 Make sure to run the FastAPI server first: uvicorn app.main:app --reload
 """
 
+import json
 import sys
+import traceback
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
 import requests
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 
 # Add backend directory to path (so we can import app.*)
 backend_dir = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(backend_dir))
 
-import json
-
 from app.models.booking_model import get_model_and_tools, get_system_prompt
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 
 # API base URL
 API_BASE = "http://localhost:8000"
@@ -89,12 +90,10 @@ def create_event_via_api(patient_name: str, phone_number: str, doctor_name: str,
 
 
 def suggest_alternative_times_via_api(day: str, slot_minutes: int = 30,
-                                      num_slots: int = 3,
-                                      start_hour: int = 9,
-                                      end_hour: int = 17) -> Dict[str, Any]:
+                                     num_slots: int = 3,
+                                     start_hour: int = 9,
+                                     end_hour: int = 17) -> Dict[str, Any]:
     """Suggest alternative times by checking API availability."""
-    from datetime import datetime, timedelta, timezone
-
     try:
         day_dt = datetime.fromisoformat(day + "T00:00:00+00:00")
         slot_delta = timedelta(minutes=slot_minutes)
@@ -370,7 +369,6 @@ def start_pre_visit_questions(event_id: str):
 
     except Exception as e:
         print(f"⚠️  Error in pre-visit questions: {str(e)}")
-        import traceback
         traceback.print_exc()
 
 
@@ -449,7 +447,6 @@ def main():
             break
         except Exception as e:
             print(f"\n❌ Error: {str(e)}")
-            import traceback
             traceback.print_exc()
             print("\n" + "-" * 70)
 

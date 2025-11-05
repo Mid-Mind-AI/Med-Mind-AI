@@ -1,0 +1,50 @@
+{
+  "qa": [
+    {
+      "question": "Before you leave, I would like to ask you a few questions as to why you are visiting today. Would you like to continue?",
+      "answer": "sure"
+    },
+    {
+      "question": "Could you tell me the main reason for your visit today?",
+      "answer": "i feel liek i lsot my hearing"
+    },
+    {
+      "question": "What symptoms are you experiencing that make you feel like you've lost your hearing?",
+      "answer": "i went to a concert yesterday"
+    },
+    {
+      "question": "Q: Did you experience any ringing in your ears or discomfort after the concert?",
+      "answer": "yes ringing"
+    },
+    {
+      "question": "Q: How long has the ringing in your ears lasted since the concert?",
+      "answer": "all the day it was painful"
+    },
+    {
+      "question": "Q: Have you noticed any changes in your hearing, such as trouble understanding conversations or sounds being muffled?",
+      "answer": "yes muffes"
+    },
+    {
+      "question": "Q: Have you had any previous issues with your hearing or ear infections in the past?",
+      "answer": "no"
+    }
+  ],
+  "event_id": "4f322ac1-8e8e-46ba-bcf6-7d9fe42855e1",
+  "report": {
+    "primary_concern": "Patient reports a significant concern regarding potential hearing loss following attendance at a concert yesterday. They experienced ringing in their ears, described as painful, which has persisted throughout the day. Additionally, the patient has noticed that sounds are muffled, indicating possible temporary threshold shifts in hearing sensitivity due to the concert's loud environment.",
+    "medications": [],
+    "medical_history": "The patient has no known chronic conditions and reports no previous issues with hearing or ear infections. There are no documented allergies or surgical history related to the ears. The patient appears to be generally healthy and has not indicated any other significant medical concerns.",
+    "ai_insights": "The symptoms described suggest a likely case of temporary threshold shift due to noise exposure at the concert, commonly referred to as temporary hearing loss or noise-induced hearing loss. The presence of tinnitus (ringing in the ears) further supports this diagnosis. It is crucial to monitor the duration of these symptoms, as prolonged ringing or worsening hearing could indicate more serious damage. A thorough audiometric evaluation is recommended to assess hearing levels and to rule out any underlying conditions. The patient should be advised about the importance of protecting their ears from loud noises in the future to prevent permanent damage.",
+    "suggested_questions": [
+      "How long did you stay at the concert, and how close were you to the speakers?",
+      "Have you experienced any dizziness or balance issues since the concert?",
+      "Do you have a history of exposure to loud noises or environments?",
+      "Is the ringing in your ears constant, or does it fluctuate?",
+      "Have you noticed any changes in your hearing since the ringing started?",
+      "Are there any other symptoms accompanying the ringing, such as ear fullness or pain?",
+      "Have you tried any remedies or treatments for the ringing or muffled sounds?",
+      "Do you have any family history of hearing loss or ear problems?"
+    ],
+    "notes": "Patient is concerned about the potential for permanent hearing loss and is seeking guidance on how to manage their symptoms. They have not previously experienced hearing issues and are motivated to prevent further damage. It may be beneficial to educate the patient about hearing protection and safe listening practices for the future."
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "qa": [
+    {
+      "question": "Before you leave, I would like to ask you a few questions as to why you are visiting today. Would you like to continue?",
+      "answer": "sure yes"
+    },
+    {
+      "question": "Could you tell me the main reason for your visit today?",
+      "answer": "i broke my arm"
+    },
+    {
+      "question": "What specific part of your arm is injured, and how did the injury happen?",
+      "answer": "it fell of my bioke"
+    },
+    {
+      "question": "Q: How long ago did the injury occur, and have you experienced any swelling or bruising since then?",
+      "answer": "no not really as of yet"
+    },
+    {
+      "question": "What kind of pain are you experiencing in your arm, and would you rate it on a scale from 1 to 10?",
+      "answer": "7"
+    },
+    {
+      "question": "Q: Have you noticed any difficulty moving your arm or using your hand since the injury?",
+      "answer": "yes"
+    },
+    {
+      "question": "Q: Can you describe what movements are most difficult for you?",
+      "answer": "moing it up and down"
+    }
+  ],
+  "event_id": "30d21235-3510-46d7-ab20-499bc5484c73",
+  "report": {
+    "primary_concern": "The patient, Yousif, is visiting due to a broken arm sustained from a fall off his bike. He reports experiencing significant pain, rating it a 7 out of 10, and has difficulty moving his arm, particularly with upward and downward movements. Although he has not noticed swelling or bruising at this time, the injury has clearly affected his mobility.",
+    "medications": [],
+    "medical_history": "The patient has not provided any information about chronic conditions, past surgeries, or allergies. There is no mention of any family history that could be relevant. He has not reported any previous incidents of similar injuries or any other ongoing medical issues.",
+    "ai_insights": "Based on the patient's responses, it is likely that he has sustained a fracture in the arm due to the fall from the bike, which explains the pain and difficulty in movement. The rating of 7 indicates a moderate to severe level of discomfort, suggesting that the fracture may be significant. The absence of swelling or bruising does not rule out a fracture, but it is important to assess for any potential complications such as nerve or vascular injury. A thorough physical examination and imaging studies, such as an X-ray, are recommended to evaluate the extent of the injury and plan appropriate treatment.",
+    "suggested_questions": [
+      "Can you specify which part of your arm is broken?",
+      "Have you been able to move your fingers or hand at all since the injury?",
+      "Did you hear or feel any popping or snapping sound at the time of the injury?",
+      "Have you taken any pain relief medications since the injury occurred?",
+      "Do you have any prior history of fractures or bone issues?",
+      "Are you experiencing any numbness or tingling in your fingers or hand?",
+      "Have you been able to bear weight on your arm since the injury?",
+      "What kind of activities do you need to perform that are affected by this injury?"
+    ],
+    "notes": "It is important to note that the patient did not mention any prior medical issues or history of similar injuries. He may need guidance on pain management and mobility support during recovery. Further evaluation will be necessary to determine the appropriate treatment plan, including possible immobilization or surgery."
+  }
+}
