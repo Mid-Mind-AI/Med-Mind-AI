@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
@@ -22,6 +22,26 @@ interface EventData {
   eventId?: string; // Backend event ID
 }
 
+interface Report {
+  primary_concern?: string | null;
+  medications?: Array<{
+    name: string;
+    dosage: string;
+    frequency: string;
+    duration?: string;
+  }>;
+  current_medications?: Array<{
+    name: string;
+    dosage: string;
+    frequency: string;
+    duration?: string;
+  }>;
+  medical_history?: string | null;
+  ai_insights?: string | null;
+  suggested_questions?: string[];
+  notes?: string | null;
+}
+
 interface EventReportPopupProps {
   isOpen: boolean;
   onClose: () => void;
@@ -38,15 +58,6 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (isOpen && event?.eventId) {
-      fetchReport(event.eventId);
-    } else {
-      setReport(null);
-      setError(null);
-    }
-  }, [isOpen, event?.eventId]);
 
   const fetchReport = async (eventId: string) => {
     setLoading(true);
@@ -65,6 +76,15 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isOpen && event?.eventId) {
+      fetchReport(event.eventId);
+    } else {
+      setReport(null);
+      setError(null);
+    }
+  }, [isOpen, event?.eventId]);
 
   if (!isOpen || !event) return null;
 
@@ -103,7 +123,7 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
                 <div className="space-y-3 text-sm">
                   <div>
                     <p className="font-bold text-gray-600 mb-1">Doctor Name</p>
-                    <p className="text-muted-foreground">{event.name || "N/A"}</p>
+                    <p className="text-muted-foreground">{event.doctor_name || event.name || "N/A"}</p>
                   </div>
                   <div>
                     <p className="font-bold text-gray-600 mb-1">Patient Name</p>
@@ -130,19 +150,88 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
 
             {/* Right Column - 2/3 width */}
             <div className="col-span-2">
-              {/* AI Insights Section */}
+              {/* Pre-Visit Report Section (fetched from backend/LLM) */}
               <div className="border-2 rounded-2xl p-6 bg-white h-full min-h-[400px]">
-                <h3 className="font-semibold text-foreground text-base mb-4">
-                  AI Insights
-                </h3>
-                <div className="border border-dashed border-gray-300 bg-muted/40 rounded-xl p-6 text-center text-muted-foreground min-h-[350px] flex flex-col items-center justify-center hover:border-gray-400 transition">
-                  <p className="text-sm font-medium">
-                    AI insights will be displayed here
-                  </p>
-                  <p className="text-xs mt-1 text-gray-500">
-                    (Placeholder for AI-generated insights)
-                  </p>
-                </div>
+                <h3 className="font-semibold text-foreground text-base mb-4">Pre-Visit Report</h3>
+
+                {loading && (
+                  <div className="border bg-muted/40 rounded-lg p-4 text-center text-muted-foreground">
+                    <p className="text-sm">Loading report...</p>
+                  </div>
+                )}
+
+                {error && (
+                  <div className="rounded-lg p-4 border border-red-200 bg-red-50 text-red-700">
+                    <p className="text-sm">{error}</p>
+                  </div>
+                )}
+
+                {!loading && !error && report && (
+                  <div className="bg-muted/40 rounded-lg p-4 border space-y-4">
+                    {report.primary_concern && (
+                      <div>
+                        <p className="font-medium text-foreground/80 mb-1 text-sm">Primary Concern:</p>
+                        <p className="text-foreground text-sm">{report.primary_concern}</p>
+                      </div>
+                    )}
+
+                    {(report.current_medications?.length || report.medications?.length) ? (
+                      <div>
+                        <p className="font-medium text-foreground/80 mb-1 text-sm">Current Medications:</p>
+                        <ul className="list-disc list-inside space-y-1 text-sm text-foreground">
+                          {(report.current_medications ?? report.medications ?? []).map((med, idx) => (
+                            <li key={idx}>
+                              {med.name} {med.dosage ? `- ${med.dosage}` : ""} {med.frequency ? `(${med.frequency})` : ""}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+
+                    {report.medical_history && (
+                      <div>
+                        <p className="font-medium text-foreground/80 mb-1 text-sm">Medical History:</p>
+                        <p className="text-foreground text-sm">{report.medical_history}</p>
+                      </div>
+                    )}
+
+                    {report.ai_insights && (
+                      <div>
+                        <p className="font-medium text-foreground/80 mb-1 text-sm">AI Insights:</p>
+                        <p className="text-foreground text-sm whitespace-pre-line">{report.ai_insights}</p>
+                      </div>
+                    )}
+
+                    {(report.suggested_questions && report.suggested_questions.length > 0) && (
+                      <div>
+                        <p className="font-medium text-foreground/80 mb-2 text-sm">Suggested Questions for Doctor:</p>
+                        <ol className="list-decimal list-inside space-y-1.5 text-sm text-foreground">
+                          {report.suggested_questions.map((q, idx) => (
+                            <li key={idx} className="pl-2">{q}</li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+
+                    {report.notes && (
+                      <div>
+                        <p className="font-medium text-foreground/80 mb-1 text-sm">Notes:</p>
+                        <p className="text-foreground text-sm">{report.notes}</p>
+                      </div>
+                    )}
+
+                    {(!report.primary_concern && !report.medical_history && !report.ai_insights && !report.notes && !(report.current_medications?.length || report.medications?.length) && !(report.suggested_questions?.length)) && (
+                      <p className="text-sm text-muted-foreground text-center">No report data available yet.</p>
+                    )}
+                  </div>
+                )}
+
+                {!loading && !error && !report && (
+                  <div className="rounded-lg p-4 border-2 border-dashed border-gray-300 text-center text-muted-foreground">
+                    <p className="text-sm">Pre-visit report not yet generated.</p>
+                    <p className="text-xs mt-2">Complete pre-visit questions to generate report.</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -150,8 +239,8 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
 
         {/* Footer */}
         <CardFooter className="justify-end border-t bg-muted/40 py-4 px-6">
-          <Button 
-            onClick={onClose} 
+          <Button
+            onClick={onClose}
             className="rounded-md bg-green-600 hover:bg-green-700 text-white"
           >
             Close

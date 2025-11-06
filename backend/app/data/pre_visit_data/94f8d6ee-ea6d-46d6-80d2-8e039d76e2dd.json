@@ -1,0 +1,57 @@
+{
+  "qa": [
+    {
+      "question": "Before you leave, I would like to ask you a few questions as to why you are visiting today. Would you like to continue?",
+      "answer": "sure"
+    },
+    {
+      "question": "Could you tell me the main reason for your visit today?",
+      "answer": "i feel veriy ill"
+    },
+    {
+      "question": "What specific symptoms are you experiencing that make you feel very ill?",
+      "answer": "running nose and dizzines"
+    },
+    {
+      "question": "Q: How long have you been experiencing the runny nose and dizziness?",
+      "answer": "for a week"
+    },
+    {
+      "question": "Q: Have you noticed any other symptoms, such as a fever, cough, or fatigue, during this week?",
+      "answer": "yes high fever"
+    },
+    {
+      "question": "Q: How high has your fever been, and have you taken any medication to help reduce it?",
+      "answer": "yes tynoal"
+    },
+    {
+      "question": "Q: How effective has Tylenol been in reducing your fever?",
+      "answer": "not very much"
+    }
+  ],
+  "event_id": "94f8d6ee-ea6d-46d6-80d2-8e039d76e2dd",
+  "report": {
+    "primary_concern": "Patient Yousif Salman reports feeling very ill, primarily due to a combination of symptoms including a runny nose, dizziness, and a high fever. These symptoms have persisted for about a week, with the patient noting that Tylenol has not been very effective in reducing the fever. The severity of the symptoms is significant enough to warrant a visit to the doctor.",
+    "medications": [
+      {
+        "name": "Tylenol",
+        "dosage": "Not specified",
+        "frequency": "As needed",
+        "duration": "Taken for the past week for fever"
+      }
+    ],
+    "medical_history": "No chronic conditions or significant past medical history were mentioned. The patient has not reported any previous surgeries or hospitalizations. There is no information provided about family medical history or allergies. The main concern is the acute illness described in the current visit.",
+    "ai_insights": "Given the patient's symptoms of high fever, runny nose, and dizziness, potential diagnoses to consider include viral infections such as influenza or a common cold, and possibly more serious conditions like bacterial infections that may require antibiotics. The ineffectiveness of Tylenol in alleviating the fever could indicate a more severe underlying condition. The patient's dizziness alongside high fever is a red flag that may necessitate further evaluation for dehydration or other complications. It is recommended that the doctor assess the patient's hydration status, conduct a physical examination, and consider laboratory tests to determine the cause of the symptoms.",
+    "suggested_questions": [
+      "Can you specify the highest temperature you have recorded while having a fever?",
+      "Have you experienced any other symptoms like cough, body aches, or chills?",
+      "Are you feeling any nausea, vomiting, or diarrhea?",
+      "How has your ability to eat or drink been affected during this illness?",
+      "Have you had any recent exposures to ill individuals or traveled recently?",
+      "Do you have any chronic health conditions that may affect your recovery?",
+      "How would you describe the dizziness? Is it constant or does it come and go?",
+      "Have you noticed any changes in your breathing or chest pain?"
+    ],
+    "notes": "Patient is currently feeling significantly unwell, which is impacting their daily activities. The effectiveness of Tylenol in controlling the fever has been minimal, indicating a potential need for alternative treatments. There are no prior medical visits mentioned for this illness, and the patient may require urgent care based on the severity of symptoms."
+  }
+}
