@@ -16,7 +16,7 @@ from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 from app.schema.Events import Event
-from app.calendar_store import create_event, check_availability
+from app.services.calendar_store import create_event, check_availability
 load_dotenv()
 
 # Configuration
@@ -109,7 +109,7 @@ def create_calendar_event(event: Event) -> Event:
 
 
 # Create the list of tools
-TOOLS = [check_availability, suggest_times, create_calendar_event]
+TOOLS = [check_calendar_availability, suggest_times, create_calendar_event]
 
 # Create system prompt
 SYSTEM_PROMPT = (
@@ -132,5 +132,56 @@ booking_model = ChatOpenAI(
 agent = create_agent(booking_model, 
                      tools=TOOLS,
                      system_prompt=SYSTEM_PROMPT)
+
+
+def complete_booking_turn(chat_history: List[Dict[str, str]], user_message: str) -> Dict[str, str]:
+    """
+    Process a booking message through the booking agent.
+    
+    Args:
+        chat_history: Previous messages in format [{"role": "user/assistant", "content": "..."}]
+        user_message: Current user message
+        
+    Returns:
+        Dictionary with:
+        - content: AI assistant response text
+        - tool_calls: List of tool calls executed (if any)
+    """
+    from langchain_core.messages import HumanMessage, AIMessage
+    
+    # Convert chat history to LangChain messages
+    messages = []
+    for msg in chat_history:
+        if msg["role"] == "user":
+            messages.append(HumanMessage(content=msg["content"]))
+        elif msg["role"] == "assistant":
+            messages.append(AIMessage(content=msg["content"]))
+    
+    # Add current user message
+    messages.append(HumanMessage(content=user_message))
+    
+    # Invoke the agent
+    response = agent.invoke({"messages": messages})
+    
+    # Extract content and tool calls from response
+    content = ""
+    tool_calls = []
+    
+    if hasattr(response, 'messages') and response.messages:
+        last_message = response.messages[-1]
+        if hasattr(last_message, 'content'):
+            content = last_message.content or ""
+        if hasattr(last_message, 'tool_calls'):
+            for tc in last_message.tool_calls or []:
+                tool_calls.append({
+                    "tool": tc.get("name") if isinstance(tc, dict) else getattr(tc, "name", ""),
+                    "args": tc.get("args") if isinstance(tc, dict) else getattr(tc, "args", {}),
+                    "result": None  # Tool results are handled by the agent
+                })
+    
+    return {
+        "content": content,
+        "tool_calls": tool_calls if tool_calls else None
+    }
 
 

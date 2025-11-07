@@ -5,8 +5,9 @@ import openai
 from pydantic import BaseModel
 import os
 from typing import Optional
+
 from app.routers import calendar as calendar_router
-from app.routers import report
+from app.routers import pre_visit_router, report, unified_workflow
 from app.routers import booking as booking_router
 from app.routers import transcribe as transcribe_router
 
@@ -27,6 +28,8 @@ app.add_middleware(
 # Mount feature routers
 app.include_router(calendar_router.router)
 app.include_router(report.router)
+app.include_router(pre_visit_router.router)
+app.include_router(unified_workflow.router)
 app.include_router(booking_router.router)
 app.include_router(transcribe_router.router)
 

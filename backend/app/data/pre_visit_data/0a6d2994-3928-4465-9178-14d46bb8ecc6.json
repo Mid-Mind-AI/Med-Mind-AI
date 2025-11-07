@@ -1,0 +1,33 @@
+{
+  "qa": [
+    {
+      "question": "Before you leave, I would like to ask you a few questions as to why you are visiting today. Would you like to continue?",
+      "answer": "sure"
+    },
+    {
+      "question": "Could you tell me the main reason for your visit today?",
+      "answer": "i am visiting because i feel ver ill"
+    },
+    {
+      "question": "What specific symptoms are you experiencing that are making you feel very ill?",
+      "answer": "no jsut very high fevor"
+    },
+    {
+      "question": "Q: How long have you been experiencing this high fever?",
+      "answer": "not so long just the poast two days"
+    },
+    {
+      "question": "Q: Have you noticed any other symptoms accompanying the fever, such as a cough, headache, or body aches?",
+      "answer": "no"
+    },
+    {
+      "question": "Q: Have you taken any medication to help reduce the fever, and if so, what did you take?",
+      "answer": "\\tynoal about twice a day"
+    },
+    {
+      "question": "Q: How well has the medication been working to lower your fever?",
+      "answer": "not so well"
+    }
+  ],
+  "event_id": "0a6d2994-3928-4465-9178-14d46bb8ecc6"
+}

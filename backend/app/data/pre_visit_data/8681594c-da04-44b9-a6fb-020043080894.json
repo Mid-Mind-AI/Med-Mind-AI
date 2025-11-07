@@ -1,0 +1,33 @@
+{
+  "qa": [
+    {
+      "question": "Before you leave, I would like to ask you a few questions as to why you are visiting today. Would you like to continue?",
+      "answer": "sure"
+    },
+    {
+      "question": "Could you tell me the main reason for your visit today?",
+      "answer": "i hae hwearing loss"
+    },
+    {
+      "question": "What type of hearing loss are you experiencing, and when did you first notice it?",
+      "answer": "yeterday"
+    },
+    {
+      "question": "Q: Have you experienced any other symptoms, such as ringing in your ears or dizziness?",
+      "answer": "yes ringing dizziness"
+    },
+    {
+      "question": "Q: How severe would you say the ringing and dizziness are on a scale from 1 to 10, with 10 being the worst?",
+      "answer": "6"
+    },
+    {
+      "question": "Q: Have you had any recent illnesses or injuries that could be related to your hearing loss and symptoms?",
+      "answer": "no"
+    },
+    {
+      "question": "Q: Have you been exposed to loud noises or environments that might have affected your hearing recently?",
+      "answer": "yes a concert"
+    }
+  ],
+  "event_id": "8681594c-da04-44b9-a6fb-020043080894"
+}

@@ -1,0 +1,57 @@
+{
+  "qa": [
+    {
+      "question": "Before you leave, I would like to ask you a few questions as to why you are visiting today. Would you like to continue?",
+      "answer": "yes"
+    },
+    {
+      "question": "Could you tell me the main reason for your visit today?",
+      "answer": "headache"
+    },
+    {
+      "question": "What kind of headache are you experiencing, and how long have you had it?",
+      "answer": "migraines"
+    },
+    {
+      "question": "Q: How often do you experience these migraines, and do you notice any specific triggers?",
+      "answer": "I experience these daily when I am studying"
+    },
+    {
+      "question": "Q: Have you tried any treatments or remedies to help alleviate your migraines while studying?",
+      "answer": "I tried taking tynelol"
+    },
+    {
+      "question": "Q: How effective has Tylenol been in managing your migraines, and have you noticed any side effects from it?",
+      "answer": "it did not help much"
+    },
+    {
+      "question": "Q: Have you considered or tried any other treatments, such as prescription medications or lifestyle changes?",
+      "answer": "nope"
+    }
+  ],
+  "event_id": "1cfd3866-6cd7-494a-a6be-d18e4810e821",
+  "report": {
+    "primary_concern": "Patient is experiencing daily migraines, particularly triggered while studying. The headaches have been persistent, indicating a potential pattern related to specific activities. Patient reports that over-the-counter medication, specifically Tylenol, has been ineffective in managing the pain.",
+    "medications": [
+      {
+        "name": "Tylenol",
+        "dosage": "Not specified",
+        "frequency": "As needed",
+        "duration": "Tried, but it did not provide much relief"
+      }
+    ],
+    "medical_history": "Patient has a history of migraines but has not mentioned any chronic conditions or previous treatments other than Tylenol for pain relief. There is no information about past surgeries, hospitalizations, or family history related to headaches. No known allergies were reported, and the patient has not pursued other treatment options or lifestyle changes to manage their migraines.",
+    "ai_insights": "The patient's daily migraines, particularly during study sessions, suggest that environmental factors or stress may be significant triggers for their condition. The ineffectiveness of Tylenol indicates that over-the-counter treatments may not be sufficient, and the patient might benefit from a more comprehensive treatment plan that could include prescription medications or non-pharmacological interventions like cognitive-behavioral therapy or lifestyle modifications. Given the frequency of the migraines, further evaluation is warranted to rule out any underlying conditions and to develop a tailored management strategy. Recommendations for the doctor include discussing potential prescription options and exploring triggers related to studying, such as screen time or posture.",
+    "suggested_questions": [
+      "Can you describe the characteristics of your migraines, such as the intensity, location, and duration?",
+      "Have you noticed any specific triggers apart from studying, like certain foods or stress levels?",
+      "On a scale of 1-10, how would you rate your pain during a migraine episode?",
+      "Have you experienced any nausea, sensitivity to light, or aura symptoms during your migraines?",
+      "What is your usual study environment like, and do you take breaks while studying?",
+      "Have you had any changes in sleep patterns or daily routines that could be contributing to your migraines?",
+      "Are there any other medications or treatments you have considered or are open to trying?",
+      "How have these migraines impacted your daily life and academic performance?"
+    ],
+    "notes": "Patient's migraines are interfering with their studying, and they have not sought further medical advice or treatments yet. It may be beneficial for the doctor to discuss holistic approaches alongside medication options, as the patient has not explored lifestyle changes or preventive strategies."
+  }
+}

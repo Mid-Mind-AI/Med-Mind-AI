@@ -19,23 +19,13 @@ import { useSidebar } from "@/components/ui/sidebar"
 const items = [
   {
     title: "Home",
-    url: "#",
+    url: "/admin",
     icon: Home,
   },
   {
-    title: "Inbox",
-    url: "#",
-    icon: Inbox,
-  },
-  {
     title: "Calendar",
-    url: "#",
+    url: "/admin/calendar",
     icon: Calendar,
-  },
-  {
-    title: "Search",
-    url: "#",
-    icon: Search,
   },
   {
     title: "Settings",
@@ -60,7 +50,7 @@ export function AppSidebar() {
       <div className="flex justify-between m-2">
        <h1 className="text-xl font-bold transition-[margin,opacity,width] duration-200 ease-linear group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:overflow-hidden whitespace-nowrap">Med Mind AI</h1>
         <SidebarTrigger />
-              
+
       </div>
       <SidebarContent>
         <SidebarGroup>

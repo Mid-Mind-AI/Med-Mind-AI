@@ -1,6 +1,9 @@
 fastapi
 uvicorn[standard]
 python-dotenv
+openai>=1.30.0
+langchain>=1.0.0
+langchain-openai>=1.0.0
+langchain-core>=1.0.0
 pydantic
-python-multipart
-faster-whisper
+requests

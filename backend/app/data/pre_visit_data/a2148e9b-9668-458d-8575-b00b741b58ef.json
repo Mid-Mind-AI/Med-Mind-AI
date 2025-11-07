@@ -1,0 +1,50 @@
+{
+  "qa": [
+    {
+      "question": "Before you leave, I would like to ask you a few questions as to why you are visiting today. Would you like to continue?",
+      "answer": "sure"
+    },
+    {
+      "question": "Could you tell me the main reason for your visit today?",
+      "answer": "brainrot"
+    },
+    {
+      "question": "What specific symptoms are you experiencing that you believe are related to your brain fog?",
+      "answer": "my head is empty"
+    },
+    {
+      "question": "Q: How long have you been experiencing this sensation of your head feeling empty?",
+      "answer": "my whole life"
+    },
+    {
+      "question": "Q: Have you noticed any particular situations or activities that make this feeling better or worse?",
+      "answer": "nope"
+    },
+    {
+      "question": "Q: Have you experienced any other symptoms, such as difficulty concentrating or memory issues, along with this feeling?",
+      "answer": "nope"
+    },
+    {
+      "question": "Q: Have you had any changes in your sleep patterns or stress levels recently?",
+      "answer": "no"
+    }
+  ],
+  "event_id": "a2148e9b-9668-458d-8575-b00b741b58ef",
+  "report": {
+    "primary_concern": "Patient, Mark, reports experiencing a sensation described as 'brainrot', characterized by a feeling of emptiness in the head. He states that this sensation has been present for his entire life, indicating a long-term issue. Mark does not report any additional symptoms such as difficulty concentrating or memory issues, nor has he noticed any specific situations that exacerbate or alleviate this feeling.",
+    "medications": [],
+    "medical_history": "Mark does not mention any chronic conditions or significant medical history. There are no past surgeries or hospitalizations reported. He has not reported any allergies, and there is no family history of neurological conditions or cognitive issues noted. His overall health status is unclear due to the vague nature of his symptoms and lack of further medical details.",
+    "ai_insights": "Mark's description of 'brainrot' and a feeling of emptiness in the head could suggest a variety of underlying issues, including psychological factors or possible cognitive concerns. The lifelong nature of this sensation may indicate a chronic condition that has not been addressed or diagnosed. It is important to explore potential psychological or neurological assessments to rule out any significant underlying conditions. Given the absence of additional symptoms, it may also be beneficial to inquire about Mark's daily functioning and any coping mechanisms he employs.",
+    "suggested_questions": [
+      "Can you describe more about what you mean by 'brainrot'? How does it affect your daily life?",
+      "Have you ever discussed this feeling with a healthcare professional before?",
+      "Are there any situations where you feel this sensation is more pronounced, even if you believe there are none?",
+      "How do you typically cope with this feeling on a daily basis?",
+      "Have you noticed any changes in your mood or emotional well-being over the years?",
+      "Do you engage in any activities that require mental focus, and how do you feel during those?",
+      "Are there any lifestyle factors such as diet, exercise, or social interactions that you think might relate to this sensation?",
+      "Is there anything else you would like us to know about your overall health or experiences?"
+    ],
+    "notes": "Mark's symptoms are quite vague and lack detail, making it difficult to ascertain the severity or impact on his quality of life. He has not reported any changes in sleep patterns or stress levels, suggesting that external factors may not be contributing to his feelings. Mark may benefit from a more thorough evaluation to explore both cognitive and psychological aspects of his symptoms."
+  }
+}
