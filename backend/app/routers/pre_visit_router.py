@@ -9,8 +9,8 @@ from app.agents.booking_agent_workflow import (
     get_next_pre_visit_question,
     submit_pre_visit_answer,
 )
-from app.models.pre_visit_questions import get_qa_history
-from app.models.pre_visit_report import get_report
+from app.agents.pre_visit_questions import get_qa_history
+from app.agents.pre_visit_report import get_report
 
 router = APIRouter(prefix="/pre-visit", tags=["Pre-Visit"])
 

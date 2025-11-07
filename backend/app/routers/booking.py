@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from app.models.booking_model import complete_booking_turn
+from app.agents.booking_model import complete_booking_turn
 from app.services import calendar_store as cal
 
 router = APIRouter(prefix="/booking", tags=["booking"])

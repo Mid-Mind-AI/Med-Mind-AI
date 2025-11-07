@@ -4,8 +4,9 @@ __pycache__
 frontend/node_modules
 frontend/build
 .git
-/backend/.venv/
-/backend/venv
-venv/
+/backend/.venv
+/backend/.env
+/backend/.env.local
 /backend/.env.template
-*.env
+/frontend/.env.local
+/files

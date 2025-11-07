@@ -94,54 +94,58 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
-      <Card className="relative w-[90vw] max-w-[1200px] max-h-[90vh] overflow-y-auto animate-fadeIn border-2 shadow-2xl rounded-2xl bg-gradient-to-br from-white to-neutral-50">
+      <Card className="relative py-2 max-w-6xl h-full max-h-[90vh] flex flex-col rounded-3xl animate-fadeIn ">
         {/* Header */}
-        <CardHeader className="relative border-b pb-4">
+        <CardHeader className=" border-b pb-0 ">
+          <div className="flex items-center justify-between px-4">
+          <CardTitle className="text-lg font-semibold text-foreground  ">
+            Appointment Report
+          </CardTitle>
           <Button
             onClick={onClose}
             variant="ghost"
             size="icon"
-            className="absolute top-3 right-3 hover:bg-accent"
+            className=" hover:bg-accent"
           >
             <X className="h-4 w-4" />
           </Button>
-          <CardTitle className="text-lg font-semibold text-foreground">
-            Appointment Report
-          </CardTitle>
+          
+          </div>
         </CardHeader>
 
         {/* Content - Two Column Layout */}
-        <CardContent className="relative p-6 z-10">
-          <div className="grid grid-cols-3 gap-6">
+        <div className="flex-1 overflow-auto">
+          <CardContent className="relative  z-10">
+          <div className="grid grid-cols-3 gap-4">
             {/* Left Column - 1/3 width */}
-            <div className="col-span-1 space-y-6">
+            <div className="col-span-1 space-y-4">
               {/* Doctor Patient Info Section */}
               <div className="border-2 rounded-2xl p-4 bg-white">
-                <h3 className="font-semibold text-foreground text-base mb-6">
+                <h3 className="font-bold text-foreground text-base ">
                   Doctor Patient Info
                 </h3>
-                <div className="space-y-3 text-sm">
+                <div className=" text-sm space-y-2">
                   <div>
-                    <p className="font-bold text-gray-600 mb-1">Doctor Name</p>
+                    <p className="font-medium text-foreground ">Doctor Name</p>
                     <p className="text-muted-foreground">{event.doctor_name || event.name || "N/A"}</p>
                   </div>
                   <div>
-                    <p className="font-bold text-gray-600 mb-1">Patient Name</p>
+                    <p className="font-medium text-foreground ">Patient Name</p>
                     <p className="text-muted-foreground">{event.patient_name}</p>
                   </div>
                   <div>
-                    <p className="font-bold text-gray-600 mb-1">Date of call:</p>
+                    <p className="font-medium text-foreground ">Date of call:</p>
                     <p className="text-muted-foreground">{formattedDateTime}</p>
                   </div>
                 </div>
               </div>
 
               {/* Recommended Actions Section */}
-              <div className="border-2 rounded-2xl p-4 bg-white">
-                <h3 className="font-semibold text-foreground text-base mb-4">
+              <div className="border-2 rounded-2xl p-4 bg-white ">
+                <h3 className="font-bold text-foreground  ">
                   Recommended Actions
                 </h3>
-                <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside">
+                <ul className="text-sm text-muted-foreground list-disc list-inside">
                   <li>Follow up Call</li>
                   <li>Prepare blood test for appointment</li>
                 </ul>
@@ -151,11 +155,11 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
             {/* Right Column - 2/3 width */}
             <div className="col-span-2">
               {/* Pre-Visit Report Section (fetched from backend/LLM) */}
-              <div className="border-2 rounded-2xl p-6 bg-white h-full min-h-[400px]">
-                <h3 className="font-semibold text-foreground text-base mb-4">Pre-Visit Report</h3>
+              <div className="border-2 rounded-2xl p-4 bg-white h-full min-h-[400px]">
+                <h3 className="font-bold text-foreground ">Pre-Visit Report</h3>
 
                 {loading && (
-                  <div className="border bg-muted/40 rounded-lg p-4 text-center text-muted-foreground">
+                  <div className="border bg-muted/40 rounded-lg p-4 text-center text-foreground-muted">
                     <p className="text-sm">Loading report...</p>
                   </div>
                 )}
@@ -167,18 +171,18 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
                 )}
 
                 {!loading && !error && report && (
-                  <div className="bg-muted/40 rounded-lg p-4 border space-y-4">
+                  <div className=" space-y-2">
                     {report.primary_concern && (
                       <div>
-                        <p className="font-medium text-foreground/80 mb-1 text-sm">Primary Concern:</p>
-                        <p className="text-foreground text-sm">{report.primary_concern}</p>
+                        <p className="font-medium text-foreground text-sm">Primary Concern:</p>
+                        <p className="text-muted-foreground text-sm">{report.primary_concern}</p>
                       </div>
                     )}
 
                     {(report.current_medications?.length || report.medications?.length) ? (
                       <div>
-                        <p className="font-medium text-foreground/80 mb-1 text-sm">Current Medications:</p>
-                        <ul className="list-disc list-inside space-y-1 text-sm text-foreground">
+                        <p className="font-medium text-foreground text-sm">Current Medications:</p>
+                        <ul className="list-disc list-inside text-sm text-muted-foreground">
                           {(report.current_medications ?? report.medications ?? []).map((med, idx) => (
                             <li key={idx}>
                               {med.name} {med.dosage ? `- ${med.dosage}` : ""} {med.frequency ? `(${med.frequency})` : ""}
@@ -190,22 +194,22 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
 
                     {report.medical_history && (
                       <div>
-                        <p className="font-medium text-foreground/80 mb-1 text-sm">Medical History:</p>
-                        <p className="text-foreground text-sm">{report.medical_history}</p>
+                        <p className="font-medium text-foreground text-sm">Medical History:</p>
+                        <p className="text-muted-foreground text-sm">{report.medical_history}</p>
                       </div>
                     )}
 
                     {report.ai_insights && (
                       <div>
-                        <p className="font-medium text-foreground/80 mb-1 text-sm">AI Insights:</p>
-                        <p className="text-foreground text-sm whitespace-pre-line">{report.ai_insights}</p>
+                        <p className="font-medium text-foreground text-sm">AI Insights:</p>
+                        <p className="text-muted-foreground text-sm whitespace-pre-line">{report.ai_insights}</p>
                       </div>
                     )}
 
                     {(report.suggested_questions && report.suggested_questions.length > 0) && (
                       <div>
-                        <p className="font-medium text-foreground/80 mb-2 text-sm">Suggested Questions for Doctor:</p>
-                        <ol className="list-decimal list-inside space-y-1.5 text-sm text-foreground">
+                        <p className="font-medium text-foreground text-sm">Suggested Questions for Doctor:</p>
+                        <ol className="list-decimal list-inside text-sm text-foreground/90">
                           {report.suggested_questions.map((q, idx) => (
                             <li key={idx} className="pl-2">{q}</li>
                           ))}
@@ -215,13 +219,13 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
 
                     {report.notes && (
                       <div>
-                        <p className="font-medium text-foreground/80 mb-1 text-sm">Notes:</p>
-                        <p className="text-foreground text-sm">{report.notes}</p>
+                        <p className="font-medium text-foreground text-sm">Notes:</p>
+                        <p className="text-muted-foreground text-sm">{report.notes}</p>
                       </div>
                     )}
 
                     {(!report.primary_concern && !report.medical_history && !report.ai_insights && !report.notes && !(report.current_medications?.length || report.medications?.length) && !(report.suggested_questions?.length)) && (
-                      <p className="text-sm text-muted-foreground text-center">No report data available yet.</p>
+                      <p className="text-sm text-foreground/90 text-center">No report data available yet.</p>
                     )}
                   </div>
                 )}
@@ -235,17 +239,8 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
               </div>
             </div>
           </div>
-        </CardContent>
-
-        {/* Footer */}
-        <CardFooter className="justify-end border-t bg-muted/40 py-4 px-6">
-          <Button
-            onClick={onClose}
-            className="rounded-md bg-green-600 hover:bg-green-700 text-white"
-          >
-            Close
-          </Button>
-        </CardFooter>
+          </CardContent>
+        </div>
       </Card>
     </div>
   );

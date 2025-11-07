@@ -11,16 +11,14 @@ All agents work together seamlessly through this workflow.
 
 from typing import Any, Dict, List
 
-from app.models.booking_model import complete_booking_turn
-from app.models.pre_visit_questions import (
+from app.agents.booking_model import complete_booking_turn
+from app.agents.pre_visit_questions import (
     generate_next_question,
     get_qa_history,
     save_qa,
 )
-from app.models.pre_visit_report import (
+from app.agents.pre_visit_report import (
     generate_pre_visit_report as generate_report,
-)
-from app.models.pre_visit_report import (
     get_report,
     save_report,
 )

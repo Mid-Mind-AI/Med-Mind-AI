@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
-from app.models.pre_visit_questions import get_qa_history
+from app.agents.pre_visit_questions import get_qa_history
 
 load_dotenv()
 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
-from app.models.pre_visit_report import get_report
-from app.models.report_model import create_event_summary
+from app.agents.pre_visit_report import get_report
+from app.agents.report_model import create_event_summary
 from app.services import calendar_store as cal
 
 router = APIRouter(prefix="/report", tags=["Report"])
