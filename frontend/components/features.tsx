@@ -31,8 +31,8 @@ const features = [
   },
   {
     icon: Shield,
-    title: "HIPAA Compliant",
-    description: "Enterprise-grade security with end-to-end encryption ensures complete patient data protection.",
+    title: "Enterprise-Grade Security",
+    description: "Bank-level encryption with end-to-end security ensures complete patient data protection.",
     gradient: "from-indigo-500 to-purple-500",
   },
   {

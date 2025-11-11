@@ -7,8 +7,8 @@ import { ChevronDown, Shield, Lock, Plug, Clock, HelpCircle } from "lucide-react
 const faqs = [
   {
     icon: Shield,
-    question: "Is Med-Mind-AI HIPAA compliant?",
-    answer: "Yes, absolutely. We're fully HIPAA compliant with enterprise-grade security, end-to-end encryption, and strict access controls. All patient data is handled according to federal healthcare privacy regulations, and we undergo regular security audits to ensure compliance.",
+    question: "What security measures does AIPPA use?",
+    answer: "AIPPA employs enterprise-grade security measures including bank-level encryption for data at rest and in transit, multi-factor authentication, strict access controls, and comprehensive audit logging. All data is stored in secure cloud infrastructure with redundant backups and disaster recovery protocols. We prioritize patient data protection through industry-standard security practices.",
   },
   {
     icon: Lock,
@@ -18,7 +18,7 @@ const faqs = [
   {
     icon: Plug,
     question: "Does it integrate with our existing EHR system?",
-    answer: "Yes, Med-Mind-AI integrates seamlessly with major EHR systems including Epic, Cerner, Allscripts, and more. Our flexible API architecture ensures smooth data synchronization without disrupting your current workflow. Setup typically takes less than a day.",
+    answer: "Yes, AIPPA integrates seamlessly with major EHR systems including Epic, Cerner, Allscripts, and more. Our flexible API architecture ensures smooth data synchronization without disrupting your current workflow. Setup typically takes less than a day.",
   },
   {
     icon: Clock,
@@ -140,7 +140,7 @@ export function FAQ() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="mx-auto max-w-[900px] text-muted-foreground md:text-xl/relaxed"
           >
-            Everything you need to know about Med-Mind-AI and how it can transform your practice
+            Everything you need to know about AIPPA and how it can transform your practice
           </motion.p>
         </motion.div>
 

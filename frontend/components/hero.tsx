@@ -11,7 +11,7 @@ import { SimpleHeader } from "./simple-header";
 export function Hero() {
   return (
       <div className="container max-w-5xl mx-auto">
-      
+
 
         <main className="relative container px-2 mx-auto">
           <section className="w-full py-12 md:py-24 lg:py-32 xl:py-36">
@@ -74,7 +74,7 @@ export function Hero() {
               >
                 <div className="flex items-center space-x-4 text-sm">
                   <span className="text-primary hover:text-primary/80 transition-colors">
-                    HIPAA Compliant
+                    Enterprise-Grade Security
                   </span>
                   <span className="text-muted-foreground/60">
                     Secure & Private

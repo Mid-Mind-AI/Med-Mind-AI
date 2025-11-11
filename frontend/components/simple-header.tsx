@@ -28,7 +28,7 @@ export function SimpleHeader() {
 			<nav className="mx-auto flex h-14 w-full max-w-4xl items-center justify-between px-4">
 				<div className="flex items-center gap-2">
 					<Grid2x2PlusIcon className="size-6" />
-					<p className="font-mono text-lg font-bold">Asme</p>
+					<p className="font-mono text-lg font-bold">AIPPA</p>
 				</div>
 				<div className="hidden items-center gap-2 lg:flex">
 					{links.map((link) => (
