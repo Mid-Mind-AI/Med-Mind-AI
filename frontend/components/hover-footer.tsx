@@ -297,15 +297,15 @@ export default function HoverFooter() {
           </p>
         </div>
 
-        {/* Interactive AIPPA text below content - interactive only on xl screens (1280px+), static below */}
+        {/* Interactive AIPPA text below content - interactive on desktop, static on mobile */}
         <div className="block h-[150px] sm:h-[180px] lg:h-[220px] -mb-12 sm:-mb-16 overflow-visible pointer-events-auto">
           <div className="relative w-full h-full flex items-center justify-center">
-            {/* Static version (non-interactive) - shown below 1280px */}
-            <div className="xl:hidden block w-full h-full">
+            {/* Mobile: Static version (non-interactive) */}
+            <div className="lg:hidden block w-full h-full">
               <TextHoverEffect text="AIPPA" className="w-full h-full" interactive={false} />
             </div>
-            {/* Interactive version - shown at 1280px and above */}
-            <div className="hidden xl:block w-full h-full">
+            {/* Desktop: Interactive version */}
+            <div className="hidden lg:block w-full h-full">
               <TextHoverEffect text="AIPPA" className="w-full h-full" interactive={true} />
             </div>
           </div>
