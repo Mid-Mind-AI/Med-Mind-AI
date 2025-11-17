@@ -2,10 +2,12 @@
 
 import { FingerprintIcon, Menu, Moon, Sun } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
 
 import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
 import { SimpleHeader } from "./simple-header";
+
 
 export function Hero() {
   return (

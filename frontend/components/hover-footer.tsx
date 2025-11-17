@@ -17,19 +17,22 @@ export const TextHoverEffect = ({
   text,
   duration,
   className,
+  interactive = true,
 }: {
   text: string;
   duration?: number;
   automatic?: boolean;
   className?: string;
+  interactive?: boolean;
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const [cursor, setCursor] = useState({ x: 0, y: 0 });
-  const [hovered, setHovered] = useState(false);
+  const [hovered, setHovered] = useState(!interactive);
   const [maskPosition, setMaskPosition] = useState({ cx: "50%", cy: "50%" });
+  const uniqueId = React.useId();
 
   useEffect(() => {
-    if (svgRef.current && cursor.x !== null && cursor.y !== null) {
+    if (interactive && svgRef.current && cursor.x !== null && cursor.y !== null) {
       const svgRect = svgRef.current.getBoundingClientRect();
       const cxPercentage = ((cursor.x - svgRect.left) / svgRect.width) * 100;
       const cyPercentage = ((cursor.y - svgRect.top) / svgRect.height) * 100;
@@ -38,7 +41,7 @@ export const TextHoverEffect = ({
         cy: `${cyPercentage}%`,
       });
     }
-  }, [cursor]);
+  }, [cursor, interactive]);
 
   return (
     <svg
@@ -47,20 +50,20 @@ export const TextHoverEffect = ({
       height="100%"
       viewBox="0 0 300 100"
       xmlns="http://www.w3.org/2000/svg"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onMouseMove={(e) => setCursor({ x: e.clientX, y: e.clientY })}
-      className={cn("select-none uppercase cursor-pointer", className)}
+      onMouseEnter={interactive ? () => setHovered(true) : undefined}
+      onMouseLeave={interactive ? () => setHovered(false) : undefined}
+      onMouseMove={interactive ? (e) => setCursor({ x: e.clientX, y: e.clientY }) : undefined}
+      className={cn("select-none uppercase", interactive && "cursor-pointer", className)}
     >
       <defs>
         <linearGradient
-          id="textGradient"
+          id={`textGradient-${uniqueId}`}
           gradientUnits="userSpaceOnUse"
           cx="50%"
           cy="50%"
           r="25%"
         >
-          {hovered && (
+          {(hovered || !interactive) && (
             <>
               <stop offset="0%" stopColor="#eab308" />
               <stop offset="25%" stopColor="#ef4444" />
@@ -72,23 +75,23 @@ export const TextHoverEffect = ({
         </linearGradient>
 
         <motion.radialGradient
-          id="revealMask"
+          id={`revealMask-${uniqueId}`}
           gradientUnits="userSpaceOnUse"
           r="20%"
           initial={{ cx: "50%", cy: "50%" }}
-          animate={maskPosition}
+          animate={interactive ? maskPosition : { cx: "50%", cy: "50%" }}
           transition={{ duration: duration ?? 0, ease: "easeOut" }}
         >
           <stop offset="0%" stopColor="white" />
           <stop offset="100%" stopColor="black" />
         </motion.radialGradient>
-        <mask id="textMask">
+        <mask id={`textMask-${uniqueId}`}>
           <rect
             x="0"
             y="0"
             width="100%"
             height="100%"
-            fill="url(#revealMask)"
+            fill={`url(#revealMask-${uniqueId})`}
           />
         </mask>
       </defs>
@@ -99,7 +102,7 @@ export const TextHoverEffect = ({
         dominantBaseline="middle"
         strokeWidth="0.5"
         className="fill-transparent stroke-neutral-200 font-[helvetica] text-7xl font-bold dark:stroke-neutral-800"
-        style={{ opacity: hovered ? 0.9 : 0.2 }}
+        style={{ opacity: (hovered || !interactive) ? 0.9 : 0.2 }}
       >
         {text}
       </text>
@@ -115,7 +118,7 @@ export const TextHoverEffect = ({
         animate={{
           strokeDashoffset: 0,
           strokeDasharray: 1000,
-          opacity: hovered ? 1 : 0.7,
+          opacity: (hovered || !interactive) ? 1 : 0.7,
         }}
         transition={{
           duration: 4,
@@ -129,11 +132,11 @@ export const TextHoverEffect = ({
         y="50%"
         textAnchor="middle"
         dominantBaseline="middle"
-        stroke="url(#textGradient)"
+        stroke={`url(#textGradient-${uniqueId})`}
         strokeWidth="0.8"
-        mask="url(#textMask)"
+        mask={`url(#textMask-${uniqueId})`}
         className="fill-transparent font-[helvetica] text-7xl font-bold"
-        style={{ opacity: hovered ? 1 : 0 }}
+        style={{ opacity: (hovered || !interactive) ? 1 : 0 }}
       >
         {text}
       </text>
@@ -294,10 +297,17 @@ export default function HoverFooter() {
           </p>
         </div>
 
-        {/* Interactive AIPPA text below content - only on large screens */}
-        <div className="lg:block hidden h-[300px] -mb-20 overflow-visible pointer-events-auto">
+        {/* Interactive AIPPA text below content - interactive only on xl screens (1280px+), static below */}
+        <div className="block h-[150px] sm:h-[180px] lg:h-[220px] -mb-12 sm:-mb-16 overflow-visible pointer-events-auto">
           <div className="relative w-full h-full flex items-center justify-center">
-            <TextHoverEffect text="AIPPA" className="w-full h-full" />
+            {/* Static version (non-interactive) - shown below 1280px */}
+            <div className="xl:hidden block w-full h-full">
+              <TextHoverEffect text="AIPPA" className="w-full h-full" interactive={false} />
+            </div>
+            {/* Interactive version - shown at 1280px and above */}
+            <div className="hidden xl:block w-full h-full">
+              <TextHoverEffect text="AIPPA" className="w-full h-full" interactive={true} />
+            </div>
           </div>
         </div>
       </div>
