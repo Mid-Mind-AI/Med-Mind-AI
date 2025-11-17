@@ -4,6 +4,7 @@ import { PainPoints } from "@/components/pain-points";
 import { Features } from "@/components/features";
 import { About } from "@/components/about";
 import FAQs from "@/components/faq";
+import HoverFooter from "@/components/hover-footer";
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
         <Features />
         <About />
         <FAQs />
+        <HoverFooter />
       </div>
     </div>
   );
