@@ -207,16 +207,16 @@ export default function HoverFooter() {
     <footer className="relative border-t border-border/40 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main footer content */}
-        <div className="pt-12 pb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+        <div className="pt-8 sm:pt-12 pb-4 sm:pb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-12">
             {/* Brand section */}
-            <div className="flex flex-col gap-3 lg:col-span-1">
+            <div className="flex flex-col gap-2 sm:gap-3 col-span-2 sm:col-span-2 lg:col-span-1">
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold bg-gradient-to-r from-[#3ca2fa] to-[#8b5cf6] bg-clip-text text-transparent">
+                <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-[#3ca2fa] to-[#8b5cf6] bg-clip-text text-transparent">
                   AIPPA
                 </span>
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-xs">
                 AI-powered healthcare management to transform your practice.
               </p>
             </div>
@@ -224,15 +224,15 @@ export default function HoverFooter() {
             {/* Footer link sections */}
             {footerLinks.map((section) => (
               <div key={section.title} className="flex flex-col">
-                <h4 className="text-sm font-semibold text-foreground mb-3">
+                <h4 className="text-xs sm:text-sm font-semibold text-foreground mb-2 sm:mb-3">
                   {section.title}
                 </h4>
-                <ul className="flex flex-col gap-2">
+                <ul className="flex flex-col gap-1.5 sm:gap-2">
                   {section.links.map((link) => (
                     <li key={link.label}>
                       <a
                         href={link.href}
-                        className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+                        className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 py-1 block"
                       >
                         {link.label}
                       </a>
@@ -243,25 +243,25 @@ export default function HoverFooter() {
             ))}
 
             {/* Contact section */}
-            <div className="flex flex-col">
-              <h4 className="text-sm font-semibold text-foreground mb-3">
+            <div className="flex flex-col col-span-2 sm:col-span-2 lg:col-span-1">
+              <h4 className="text-xs sm:text-sm font-semibold text-foreground mb-2 sm:mb-3">
                 Contact Us
               </h4>
-              <ul className="flex flex-col gap-3">
+              <ul className="flex flex-col gap-2 sm:gap-3">
                 {contactInfo.map((item, i) => (
-                  <li key={i} className="flex items-center gap-3">
+                  <li key={i} className="flex items-center gap-2 sm:gap-3">
                     <span className="shrink-0 text-muted-foreground">
                       {item.icon}
                     </span>
                     {item.href ? (
                       <a
                         href={item.href}
-                        className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+                        className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 break-words"
                       >
                         {item.text}
                       </a>
                     ) : (
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-xs sm:text-sm text-muted-foreground break-words">
                         {item.text}
                       </span>
                     )}
@@ -273,15 +273,15 @@ export default function HoverFooter() {
         </div>
 
         {/* Social icons and copyright */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 py-4 border-t border-border/40">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 py-4 sm:py-4 border-t border-border/40">
           {/* Social icons */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             {socialLinks.map(({ icon, label, href }) => (
               <a
                 key={label}
                 href={href}
                 aria-label={label}
-                className="text-[#3ca2fa] hover:text-[#3ca2fa]/80 transition-colors duration-200"
+                className="text-[#3ca2fa] hover:text-[#3ca2fa]/80 transition-colors duration-200 p-1.5 sm:p-0"
               >
                 {icon}
               </a>
@@ -289,7 +289,7 @@ export default function HoverFooter() {
           </div>
 
           {/* Copyright */}
-          <p className="text-sm text-muted-foreground text-center sm:text-left">
+          <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
             &copy; {new Date().getFullYear()} AIPPA. All rights reserved.
           </p>
         </div>
