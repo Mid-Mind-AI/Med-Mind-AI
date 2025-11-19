@@ -11,7 +11,8 @@ from app.routers import pre_visit_router, report, unified_workflow
 from app.routers import booking as booking_router
 from app.routers import transcribe as transcribe_router
 
-load_dotenv()
+# Load environment variables from .env.local
+load_dotenv('.env.local')
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = FastAPI()
