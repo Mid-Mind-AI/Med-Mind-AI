@@ -215,7 +215,7 @@ export default function HoverFooter() {
             {/* Brand section */}
             <div className="flex flex-col gap-2 sm:gap-3 col-span-2 sm:col-span-2 lg:col-span-1">
               <div className="flex items-center gap-2">
-                <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-[#3ca2fa] to-[#8b5cf6] bg-clip-text text-transparent">
+                <span className="font-mono text-xl sm:text-2xl font-bold bg-gradient-to-r from-[#3ca2fa] to-[#8b5cf6] bg-clip-text text-transparent">
                   AIPPA
                 </span>
               </div>

@@ -17,7 +17,9 @@ from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 from app.schema.Events import Event
 from app.services.calendar_store import create_event, check_availability
-load_dotenv()
+
+# Load environment variables from .env
+load_dotenv('.env.local')
 
 # Configuration
 API_BASE = os.getenv("CAL_API_BASE", "http://localhost:8000")
@@ -119,19 +121,41 @@ SYSTEM_PROMPT = (
     "Keep replies under 2 sentences and confirm title and timezone."
 )
 
-# Initialize the LLM
-booking_model = ChatOpenAI(
-    model=BOOKING_MODEL,
-    base_url=OPENROUTER_BASE_URL,
-    api_key=OPENROUTER_API_KEY,
-    temperature=0.3,
-)
+# Initialize the LLM lazily to avoid errors if API key is not set at import time
+_booking_model = None
+_agent = None
 
-# Create the agent with the tools and system prompt using langchain create_agent
-# https://docs.langchain.com/oss/python/langchain/overview
-agent = create_agent(booking_model,
-                     tools=TOOLS,
-                     system_prompt=SYSTEM_PROMPT)
+
+def get_booking_model():
+    """Get or create the booking model instance."""
+    global _booking_model
+    if _booking_model is None:
+        # Fallback to OPENAI_API_KEY if OPENROUTER_API_KEY is not set
+        api_key = OPENROUTER_API_KEY or os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError(
+                "Either OPENROUTER_API_KEY or OPENAI_API_KEY must be set in environment variables"
+            )
+        _booking_model = ChatOpenAI(
+            model=BOOKING_MODEL,
+            base_url=OPENROUTER_BASE_URL,
+            api_key=api_key,
+            temperature=0.3,
+        )
+    return _booking_model
+
+
+def get_agent():
+    """Get or create the agent instance."""
+    global _agent
+    if _agent is None:
+        model = get_booking_model()
+        _agent = create_agent(
+            model,
+            tools=TOOLS,
+            system_prompt=SYSTEM_PROMPT
+        )
+    return _agent
 
 
 def complete_booking_turn(chat_history: List[Dict[str, str]], user_message: str) -> Dict[str, str]:
@@ -160,8 +184,11 @@ def complete_booking_turn(chat_history: List[Dict[str, str]], user_message: str)
     # Add current user message
     messages.append(HumanMessage(content=user_message))
 
+    # Get the agent (lazy initialization)
+    agent_instance = get_agent()
+
     # Invoke the agent
-    response = agent.invoke({"messages": messages})
+    response = agent_instance.invoke({"messages": messages})
 
     # Extract content and tool calls from response
     content = ""

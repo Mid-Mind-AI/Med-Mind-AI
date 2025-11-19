@@ -10,7 +10,7 @@ from langchain_openai import ChatOpenAI
 
 from app.agents.pre_visit_questions import get_qa_history
 
-load_dotenv()
+load_dotenv('.env.local')
 
 DATA_DIR = Path(__file__).parent.parent / "data" / "pre_visit_data"
 DATA_DIR.mkdir(exist_ok=True)

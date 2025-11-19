@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
-load_dotenv()
+load_dotenv('.env.local')
 
 DATA_DIR = Path(__file__).parent.parent / "data" / "pre_visit_data"
 DATA_DIR.mkdir(exist_ok=True)

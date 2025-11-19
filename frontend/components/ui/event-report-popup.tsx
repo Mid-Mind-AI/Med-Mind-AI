@@ -133,7 +133,7 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-6 sm:px-8 py-4 sm:py-5">
           <div className="flex flex-col gap-1">
-            <h2 id="report-title" className="text-xl font-semibold tracking-tight text-foreground">
+            <h2 id="report-title" className="text-xl font-bold tracking-tight text-foreground">
               Appointment Report
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -238,7 +238,7 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
           {/* Right Content - Report */}
           <div className="flex min-w-0 flex-1 flex-col bg-background">
             <div className="border-b border-border px-6 sm:px-8 py-4">
-              <h3 className="text-sm font-semibold text-foreground">
+              <h3 className="text-sm font-medium text-foreground">
                 Pre-Visit Report
               </h3>
             </div>
@@ -278,10 +278,10 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
                           )}
                         </Button>
                       </div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
                         Primary Concern
                       </p>
-                      <p className="text-sm leading-relaxed text-foreground pr-8">
+                      <p className="text-sm font-normal leading-relaxed text-foreground pr-8">
                         {report.primary_concern}
                       </p>
                     </div>
@@ -310,7 +310,7 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
                           )}
                         </Button>
                       </div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
                         Current Medications
                       </p>
                       <ul className="space-y-2 pr-8">
@@ -348,10 +348,10 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
                           )}
                         </Button>
                       </div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
                         Medical History
                       </p>
-                      <p className="text-sm leading-relaxed text-foreground whitespace-pre-line pr-8">
+                      <p className="text-sm font-normal leading-relaxed text-foreground whitespace-pre-line pr-8">
                         {report.medical_history}
                       </p>
                     </div>
@@ -374,10 +374,10 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
                           )}
                         </Button>
                       </div>
-                      <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
+                      <p className="text-xs font-medium text-primary uppercase tracking-wider mb-2">
                         AI Insights
                       </p>
-                      <p className="text-sm leading-relaxed text-foreground whitespace-pre-line pr-8">
+                      <p className="text-sm font-normal leading-relaxed text-foreground whitespace-pre-line pr-8">
                         {report.ai_insights}
                       </p>
                     </div>
@@ -401,7 +401,7 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
                             )}
                           </Button>
                         </div>
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
                           Suggested Questions
                         </p>
                         <ol className="space-y-2 pr-8">
@@ -434,10 +434,10 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
                           )}
                         </Button>
                       </div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
                         Notes
                       </p>
-                      <p className="text-sm leading-relaxed text-foreground whitespace-pre-line pr-8">
+                      <p className="text-sm font-normal leading-relaxed text-foreground whitespace-pre-line pr-8">
                         {report.notes}
                       </p>
                     </div>

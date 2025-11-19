@@ -48,7 +48,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border border-accent">
       <div className="flex justify-between m-2">
-       <h1 className="text-xl font-bold transition-[margin,opacity,width] duration-200 ease-linear group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:overflow-hidden whitespace-nowrap">Med Mind AI</h1>
+       <h1 className="text-xl font-bold bg-gradient-to-r from-[#3ca2fa] to-[#8b5cf6] bg-clip-text text-transparent transition-[margin,opacity,width] duration-200 ease-linear group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:overflow-hidden whitespace-nowrap">Med Mind AI</h1>
         <SidebarTrigger />
 
       </div>

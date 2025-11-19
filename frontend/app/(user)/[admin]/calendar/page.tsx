@@ -36,13 +36,32 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
 
 export default function Admin() {
   const [data, setData] = useState<CalendarDay[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const today = new Date();
     const monthParam = format(today, "yyyy-MM");
+    const url = `${API_BASE}/calendar?month=${monthParam}`;
 
-    fetch(`${API_BASE}/calendar?month=${monthParam}`)
-      .then((r) => r.json())
+    setLoading(true);
+    setError(null);
+
+    fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then(async (r) => {
+        if (!r.ok) {
+          const errorText = await r.text().catch(() => r.statusText);
+          throw new Error(
+            `HTTP error! status: ${r.status}, message: ${errorText}`
+          );
+        }
+        return r.json();
+      })
       .then((json) => {
         const events: BackendEvent[] = json.events || [];
 
@@ -76,12 +95,46 @@ export default function Admin() {
         );
 
         setData(mapped);
+        setLoading(false);
       })
       .catch((e) => {
-        console.error("Failed to load events", e);
+        console.error("Failed to load events from", url, e);
+        const errorMessage =
+          e instanceof Error
+            ? e.message
+            : "Failed to connect to backend server";
+        setError(
+          `Unable to load calendar events. Please ensure the backend server is running at ${API_BASE}`
+        );
         setData([]);
+        setLoading(false);
       });
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center bg-background rounded-lg h-screen">
+        <div className="text-lg">Loading calendar events...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center bg-background rounded-lg h-screen p-8">
+        <div className="text-lg text-destructive mb-4">Error</div>
+        <div className="text-sm text-muted-foreground text-center max-w-md">
+          {error}
+        </div>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center bg-background rounded-lg ">
