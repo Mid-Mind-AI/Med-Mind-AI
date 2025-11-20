@@ -1,15 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+import { X, Calendar, User, Phone, Stethoscope, Copy, Check } from "lucide-react";
 
 interface EventData {
   id: number;
@@ -58,6 +50,9 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const fetchReport = async (eventId: string) => {
     setLoading(true);
@@ -86,162 +81,403 @@ const EventReportPopup: React.FC<EventReportPopupProps> = ({
     }
   }, [isOpen, event?.eventId]);
 
+  // Keyboard support
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("keydown", handleEscape);
+      // Focus the close button when modal opens
+      setTimeout(() => closeButtonRef.current?.focus(), 100);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen, onClose]);
+
+  // Copy to clipboard helper
+  const copyToClipboard = async (text: string, id: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
   if (!isOpen || !event) return null;
 
   const eventDate = new Date(event.datetime);
-  const formattedDate = format(eventDate, "MMMM d, yyyy");
-  const formattedDateTime = format(eventDate, "MMMM d, yyyy 'at' h:mm a");
+  const formattedDate = format(eventDate, "MMM d, yyyy");
+  const formattedTime = format(eventDate, "h:mm a");
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
-      <Card className="relative py-2 max-w-6xl h-full max-h-[90vh] flex flex-col rounded-3xl animate-fadeIn ">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-200"
+      onClick={onClose}
+    >
+      <div
+        ref={modalRef}
+        className="relative flex h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-background shadow-2xl animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-4 duration-300"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="report-title"
+      >
         {/* Header */}
-        <CardHeader className=" border-b pb-0 ">
-          <div className="flex items-center justify-between px-4">
-          <CardTitle className="text-lg font-semibold text-foreground  ">
-            Appointment Report
-          </CardTitle>
+        <div className="flex items-center justify-between border-b border-border px-6 sm:px-8 py-4 sm:py-5">
+          <div className="flex flex-col gap-1">
+            <h2 id="report-title" className="text-xl font-bold tracking-tight text-foreground">
+              Appointment Report
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              {formattedDate}
+            </p>
+          </div>
           <Button
+            ref={closeButtonRef}
             onClick={onClose}
             variant="ghost"
             size="icon"
-            className=" hover:bg-accent"
+            className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+            aria-label="Close dialog"
           >
             <X className="h-4 w-4" />
           </Button>
-          
-          </div>
-        </CardHeader>
+        </div>
 
-        {/* Content - Two Column Layout */}
-        <div className="flex-1 overflow-auto">
-          <CardContent className="relative  z-10">
-          <div className="grid grid-cols-3 gap-4">
-            {/* Left Column - 1/3 width */}
-            <div className="col-span-1 space-y-4">
-              {/* Doctor Patient Info Section */}
-              <div className="border-2 rounded-2xl p-4 bg-white">
-                <h3 className="font-bold text-foreground text-base ">
-                  Doctor Patient Info
-                </h3>
-                <div className=" text-sm space-y-2">
-                  <div>
-                    <p className="font-medium text-foreground ">Doctor Name</p>
-                    <p className="text-muted-foreground">{event.doctor_name || event.name || "N/A"}</p>
+        {/* Content */}
+        <div className="flex min-h-0 flex-1 overflow-hidden flex-col lg:flex-row">
+          {/* Left Sidebar - Overview */}
+          <div className="flex w-full lg:w-80 flex-col border-r border-border bg-muted/30 overflow-y-auto">
+            <div className="px-4 sm:px-6 py-6 space-y-6">
+              {/* Patient Info */}
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 rounded-lg bg-muted p-2">
+                    <User className="h-4 w-4 text-muted-foreground" />
                   </div>
-                  <div>
-                    <p className="font-medium text-foreground ">Patient Name</p>
-                    <p className="text-muted-foreground">{event.patient_name}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Patient
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-foreground truncate">
+                      {event.patient_name}
+                    </p>
                   </div>
-                  <div>
-                    <p className="font-medium text-foreground ">Date of call:</p>
-                    <p className="text-muted-foreground">{formattedDateTime}</p>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 rounded-lg bg-muted p-2">
+                    <Stethoscope className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Doctor
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-foreground truncate">
+                      {event.doctor_name || event.name || "N/A"}
+                    </p>
+                  </div>
+                </div>
+
+                {event.phone_number && (
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 rounded-lg bg-muted p-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Phone
+                      </p>
+                      <p className="mt-1 text-sm font-medium text-foreground">
+                        {event.phone_number}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 rounded-lg bg-muted p-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Time
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-foreground">
+                      {formattedTime}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Recommended Actions Section */}
-              <div className="border-2 rounded-2xl p-4 bg-white ">
-                <h3 className="font-bold text-foreground  ">
-                  Recommended Actions
-                </h3>
-                <ul className="text-sm text-muted-foreground list-disc list-inside">
-                  <li>Follow up Call</li>
-                  <li>Prepare blood test for appointment</li>
-                </ul>
+              {/* Status Badge */}
+              <div className="pt-4 border-t border-border">
+                <div className="rounded-xl bg-card border border-border px-4 py-3">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                    Status
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div className={`h-2 w-2 rounded-full ${report ? 'bg-green-500' : 'bg-muted-foreground/50'}`} />
+                    <p className="text-sm font-medium text-foreground">
+                      {report ? "Report Generated" : "Pending"}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
+          </div>
 
-            {/* Right Column - 2/3 width */}
-            <div className="col-span-2">
-              {/* Pre-Visit Report Section (fetched from backend/LLM) */}
-              <div className="border-2 rounded-2xl p-4 bg-white h-full min-h-[400px]">
-                <h3 className="font-bold text-foreground ">Pre-Visit Report</h3>
+          {/* Right Content - Report */}
+          <div className="flex min-w-0 flex-1 flex-col bg-background">
+            <div className="border-b border-border px-6 sm:px-8 py-4">
+              <h3 className="text-sm font-medium text-foreground">
+                Pre-Visit Report
+              </h3>
+            </div>
 
-                {loading && (
-                  <div className="border bg-muted/40 rounded-lg p-4 text-center text-foreground-muted">
-                    <p className="text-sm">Loading report...</p>
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
+              {loading && (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center">
+                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-muted border-t-foreground mb-3" />
+                    <p className="text-sm text-muted-foreground">Loading report...</p>
                   </div>
-                )}
+                </div>
+              )}
 
-                {error && (
-                  <div className="rounded-lg p-4 border border-red-200 bg-red-50 text-red-700">
-                    <p className="text-sm">{error}</p>
-                  </div>
-                )}
+              {error && (
+                <div className="rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3">
+                  <p className="text-sm font-medium text-destructive">{error}</p>
+                </div>
+              )}
 
-                {!loading && !error && report && (
-                  <div className=" space-y-2">
-                    {report.primary_concern && (
-                      <div>
-                        <p className="font-medium text-foreground text-sm">Primary Concern:</p>
-                        <p className="text-muted-foreground text-sm">{report.primary_concern}</p>
+              {!loading && !error && report && (
+                <div className="space-y-5">
+                  {report.primary_concern && (
+                    <div className="group relative rounded-xl border border-border bg-muted/30 px-5 py-4 hover:bg-muted/50 transition-colors">
+                      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => copyToClipboard(report.primary_concern || "", "primary_concern")}
+                          aria-label="Copy primary concern"
+                        >
+                          {copiedId === "primary_concern" ? (
+                            <Check className="h-3.5 w-3.5 text-green-600" />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                          )}
+                        </Button>
                       </div>
-                    )}
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                        Primary Concern
+                      </p>
+                      <p className="text-sm font-normal leading-relaxed text-foreground pr-8">
+                        {report.primary_concern}
+                      </p>
+                    </div>
+                  )}
 
-                    {(report.current_medications?.length || report.medications?.length) ? (
-                      <div>
-                        <p className="font-medium text-foreground text-sm">Current Medications:</p>
-                        <ul className="list-disc list-inside text-sm text-muted-foreground">
-                          {(report.current_medications ?? report.medications ?? []).map((med, idx) => (
-                            <li key={idx}>
-                              {med.name} {med.dosage ? `- ${med.dosage}` : ""} {med.frequency ? `(${med.frequency})` : ""}
+                  {(report.current_medications?.length ||
+                    report.medications?.length) && (
+                    <div className="group relative rounded-xl border border-border bg-muted/30 px-5 py-4 hover:bg-muted/50 transition-colors">
+                      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => {
+                            const medsText = (report.current_medications ?? report.medications ?? [])
+                              .map(m => `${m.name}${m.dosage ? ` - ${m.dosage}` : ""}${m.frequency ? ` (${m.frequency})` : ""}`)
+                              .join("\n");
+                            copyToClipboard(medsText, "medications");
+                          }}
+                          aria-label="Copy medications"
+                        >
+                          {copiedId === "medications" ? (
+                            <Check className="h-3.5 w-3.5 text-green-600" />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                          )}
+                        </Button>
+                      </div>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                        Current Medications
+                      </p>
+                      <ul className="space-y-2 pr-8">
+                        {(report.current_medications ??
+                          report.medications ??
+                          []
+                        ).map((m, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm text-foreground">
+                            <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-muted-foreground/60 shrink-0" />
+                            <span className="flex-1">
+                              <span className="font-medium">{m.name}</span>
+                              {m.dosage && <span className="text-muted-foreground"> • {m.dosage}</span>}
+                              {m.frequency && <span className="text-muted-foreground"> • {m.frequency}</span>}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {report.medical_history && (
+                    <div className="group relative rounded-xl border border-border bg-muted/30 px-5 py-4 hover:bg-muted/50 transition-colors">
+                      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => copyToClipboard(report.medical_history || "", "medical_history")}
+                          aria-label="Copy medical history"
+                        >
+                          {copiedId === "medical_history" ? (
+                            <Check className="h-3.5 w-3.5 text-green-600" />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                          )}
+                        </Button>
+                      </div>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                        Medical History
+                      </p>
+                      <p className="text-sm font-normal leading-relaxed text-foreground whitespace-pre-line pr-8">
+                        {report.medical_history}
+                      </p>
+                    </div>
+                  )}
+
+                  {report.ai_insights && (
+                    <div className="group relative rounded-xl border border-primary/20 bg-primary/5 px-5 py-4 hover:bg-primary/10 transition-colors">
+                      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => copyToClipboard(report.ai_insights || "", "ai_insights")}
+                          aria-label="Copy AI insights"
+                        >
+                          {copiedId === "ai_insights" ? (
+                            <Check className="h-3.5 w-3.5 text-green-600" />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5 text-primary" />
+                          )}
+                        </Button>
+                      </div>
+                      <p className="text-xs font-medium text-primary uppercase tracking-wider mb-2">
+                        AI Insights
+                      </p>
+                      <p className="text-sm font-normal leading-relaxed text-foreground whitespace-pre-line pr-8">
+                        {report.ai_insights}
+                      </p>
+                    </div>
+                  )}
+
+                  {report.suggested_questions &&
+                    report.suggested_questions.length > 0 && (
+                      <div className="group relative rounded-xl border border-border bg-muted/30 px-5 py-4 hover:bg-muted/50 transition-colors">
+                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => copyToClipboard(report.suggested_questions?.join("\n") || "", "suggested_questions")}
+                            aria-label="Copy suggested questions"
+                          >
+                            {copiedId === "suggested_questions" ? (
+                              <Check className="h-3.5 w-3.5 text-green-600" />
+                            ) : (
+                              <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                            )}
+                          </Button>
+                        </div>
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                          Suggested Questions
+                        </p>
+                        <ol className="space-y-2 pr-8">
+                          {report.suggested_questions.map((q, i) => (
+                            <li key={i} className="flex gap-3 text-sm text-foreground">
+                              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
+                                {i + 1}
+                              </span>
+                              <span className="flex-1 leading-relaxed">{q}</span>
                             </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ) : null}
-
-                    {report.medical_history && (
-                      <div>
-                        <p className="font-medium text-foreground text-sm">Medical History:</p>
-                        <p className="text-muted-foreground text-sm">{report.medical_history}</p>
-                      </div>
-                    )}
-
-                    {report.ai_insights && (
-                      <div>
-                        <p className="font-medium text-foreground text-sm">AI Insights:</p>
-                        <p className="text-muted-foreground text-sm whitespace-pre-line">{report.ai_insights}</p>
-                      </div>
-                    )}
-
-                    {(report.suggested_questions && report.suggested_questions.length > 0) && (
-                      <div>
-                        <p className="font-medium text-foreground text-sm">Suggested Questions for Doctor:</p>
-                        <ol className="list-decimal list-inside text-sm text-foreground/90">
-                          {report.suggested_questions.map((q, idx) => (
-                            <li key={idx} className="pl-2">{q}</li>
                           ))}
                         </ol>
                       </div>
                     )}
 
-                    {report.notes && (
-                      <div>
-                        <p className="font-medium text-foreground text-sm">Notes:</p>
-                        <p className="text-muted-foreground text-sm">{report.notes}</p>
+                  {report.notes && (
+                    <div className="group relative rounded-xl border border-border bg-muted/30 px-5 py-4 hover:bg-muted/50 transition-colors">
+                      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => copyToClipboard(report.notes || "", "notes")}
+                          aria-label="Copy notes"
+                        >
+                          {copiedId === "notes" ? (
+                            <Check className="h-3.5 w-3.5 text-green-600" />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                          )}
+                        </Button>
+                      </div>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                        Notes
+                      </p>
+                      <p className="text-sm font-normal leading-relaxed text-foreground whitespace-pre-line pr-8">
+                        {report.notes}
+                      </p>
+                    </div>
+                  )}
+
+                  {!report.primary_concern &&
+                    !report.medical_history &&
+                    !report.ai_insights &&
+                    !report.notes &&
+                    !(report.current_medications?.length ||
+                      report.medications?.length) &&
+                    !(report.suggested_questions?.length) && (
+                      <div className="py-12 text-center">
+                        <p className="text-sm text-muted-foreground">
+                          No report data available yet.
+                        </p>
                       </div>
                     )}
+                </div>
+              )}
 
-                    {(!report.primary_concern && !report.medical_history && !report.ai_insights && !report.notes && !(report.current_medications?.length || report.medications?.length) && !(report.suggested_questions?.length)) && (
-                      <p className="text-sm text-foreground/90 text-center">No report data available yet.</p>
-                    )}
+              {!loading && !error && !report && (
+                <div className="flex items-center justify-center py-16">
+                  <div className="text-center max-w-sm">
+                    <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                      <Calendar className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm font-medium text-foreground mb-1">
+                      Report Not Generated
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Complete pre-visit questions to generate a report.
+                    </p>
                   </div>
-                )}
-
-                {!loading && !error && !report && (
-                  <div className="rounded-lg p-4 border-2 border-dashed border-gray-300 text-center text-muted-foreground">
-                    <p className="text-sm">Pre-visit report not yet generated.</p>
-                    <p className="text-xs mt-2">Complete pre-visit questions to generate report.</p>
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
-          </CardContent>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };

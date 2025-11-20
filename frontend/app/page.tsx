@@ -3,7 +3,8 @@ import { Hero } from "@/components/hero";
 import { PainPoints } from "@/components/pain-points";
 import { Features } from "@/components/features";
 import { About } from "@/components/about";
-import { FAQ } from "@/components/faq";
+import FAQs from "@/components/faq";
+import HoverFooter from "@/components/hover-footer";
 
 export default function Home() {
   return (
@@ -13,7 +14,8 @@ export default function Home() {
         <PainPoints />
         <Features />
         <About />
-        <FAQ />
+        <FAQs />
+        <HoverFooter />
       </div>
     </div>
   );
